@@ -1,20 +1,68 @@
 package main
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"log"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/template/html"
+)
 
 func helloFiber(c *fiber.Ctx) error {
 
 	response := "Hi"
 
-	c.Send([]byte(response))
-
-	return nil
+	return c.Send([]byte(response))
 }
 
 func main() {
-	app := fiber.New()
+	engine := html.New("./views", ".html")
 
-	app.Get("/", helloFiber)
+	app := fiber.New(fiber.Config{
+		Views:       engine,
+		ViewsLayout: "main",
+	})
 
-	app.Listen(":8080")
+	app.Static("/a", "./assets")
+
+	app.Get("/", func(c *fiber.Ctx) error {
+		title := "Index"
+		return c.Render("index", fiber.Map{
+			"Title": title,
+		})
+	})
+
+	app.Get("/about", func(c *fiber.Ctx) error {
+		title := "About"
+		return c.Render("about", fiber.Map{
+			"Title": title,
+		})
+	})
+
+	app.Get("/programme-overview", func(c *fiber.Ctx) error {
+		title := "Programme Overview"
+		content := "The conference program will be posted later."
+		return c.Render("basic", fiber.Map{
+			"Title":   title,
+			"Content": content,
+		})
+	})
+
+	app.Get("/keynote-speakers", func(c *fiber.Ctx) error {
+		title := "Keynote Speakers"
+		content := "Key speakers to be determined later."
+		return c.Render("basic", fiber.Map{
+			"Title":   title,
+			"Content": content,
+		})
+	})
+
+	app.Use(func(c *fiber.Ctx) error {
+		title := "Page Not Found"
+		return c.Render("basic", fiber.Map{
+			"Title":   title,
+			"Content": title,
+		})
+	})
+
+	log.Fatal(app.Listen(":8080"))
 }
