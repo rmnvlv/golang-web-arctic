@@ -52,7 +52,9 @@ func main() {
 	app.Get("/", func(c *fiber.Ctx) error {
 		title := "Index"
 		return c.Render("index", fiber.Map{
-			"Title": title,
+			"Title":   title,
+			"Links":   Links,
+			"Content": homeContent,
 		})
 	})
 
@@ -60,6 +62,8 @@ func main() {
 		title := "About"
 		return c.Render("about", fiber.Map{
 			"Title": title,
+			"Links":   Links,
+
 		})
 	})
 
@@ -69,6 +73,8 @@ func main() {
 		return c.Render("basic", fiber.Map{
 			"Title":   title,
 			"Content": content,
+			"Links":   Links,
+
 		})
 	})
 
@@ -78,6 +84,8 @@ func main() {
 		return c.Render("basic", fiber.Map{
 			"Title":   title,
 			"Content": content,
+			"Links":   Links,
+
 		})
 	})
 
@@ -86,6 +94,8 @@ func main() {
 		return c.Render("basic", fiber.Map{
 			"Title":   title,
 			"Content": title,
+			"Links":   Links,
+
 		})
 	})
 
