@@ -51,6 +51,16 @@ func downloadParticipantsPost(c *fiber.Ctx) error {
 
 	writer := csv.NewWriter(csvFile)
 
+	var headerOfrows []string
+	headerOfrows = append(headerOfrows, "Name")
+	headerOfrows = append(headerOfrows, "Surname")
+	headerOfrows = append(headerOfrows, "Organizacion")
+	headerOfrows = append(headerOfrows, "Phone")
+	headerOfrows = append(headerOfrows, "Email")
+	headerOfrows = append(headerOfrows, "Type")
+	headerOfrows = append(headerOfrows, "Title")
+	writer.Write(headerOfrows)
+
 	for _, participan := range participants {
 		var row []string
 		row = append(row, participan.Name)
