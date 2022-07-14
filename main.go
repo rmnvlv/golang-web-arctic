@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"log"
+
+	"github.com/gofiber/template/html"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/rmnvlv/Web-Arctic/database"
@@ -29,29 +32,62 @@ func initDynamicRoutes(app *fiber.App) {
 	admin := app.Group("/admin")
 	dynamic.InitAdminRouter(admin)
 
-	// admin.Use(jwtMiddleware.New(jwtMiddleware.Config{
-	// 	ErrorHandler: func(c *fiber.Ctx, err error) error {
-	// 		return fiber.NewError(1, "NOT_AUTHORIZED",
-	// 			"Authentication credentials are missing or invalid.",
-	// 			"Provide a properly configured and signed bearer token, and make sure that it has not expired.")
-	// 	},
-	// 	SigningMethod: jwt.SigningMethodHS256.Name,
-	// 	SigningKey:    []byte(dynamic.JWT().SigningKey),
-	// 	ContextKey:    "token",
-	// }))
-
 	user := app.Group("/user")
 	dynamic.InitUserRoutes(user)
-
-	// auth := app.Group("/auth")
-	// dynamic.InitAuthRoutes(auth)
 }
 
 func main() {
-	app := fiber.New()
+	engine := html.New("./views", ".html")
+
+	app := fiber.New(fiber.Config{
+		Views:       engine,
+		ViewsLayout: "main",
+	})
 
 	initDatabase()
 	initDynamicRoutes(app)
 
-	app.Listen(":8080")
+	app.Static("/a", "./assets")
+
+	app.Get("/", func(c *fiber.Ctx) error {
+		title := "Index"
+		return c.Render("index", fiber.Map{
+			"Title": title,
+		})
+	})
+
+	app.Get("/about", func(c *fiber.Ctx) error {
+		title := "About"
+		return c.Render("about", fiber.Map{
+			"Title": title,
+		})
+	})
+
+	app.Get("/programme-overview", func(c *fiber.Ctx) error {
+		title := "Programme Overview"
+		content := "The conference program will be posted later."
+		return c.Render("basic", fiber.Map{
+			"Title":   title,
+			"Content": content,
+		})
+	})
+
+	app.Get("/keynote-speakers", func(c *fiber.Ctx) error {
+		title := "Keynote Speakers"
+		content := "Key speakers to be determined later."
+		return c.Render("basic", fiber.Map{
+			"Title":   title,
+			"Content": content,
+		})
+	})
+
+	app.Use(func(c *fiber.Ctx) error {
+		title := "Page Not Found"
+		return c.Render("basic", fiber.Map{
+			"Title":   title,
+			"Content": title,
+		})
+	})
+
+	log.Fatal(app.Listen(":8080"))
 }
