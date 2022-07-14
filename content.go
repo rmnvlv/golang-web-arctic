@@ -30,12 +30,10 @@ var Links = []struct {
 	},
 }
 
-type Content struct {
+var homeContent = []struct {
 	Title     string
 	Paragraph string
-}
-
-var homeContent = []Content{
+}{
 	{
 		Title:     "Welcome to AMTC 2022",
 		Paragraph: "Admiral Makarov State University of Maritime and Inland Shipping welcomes you to Russia for the International Conference «Arctic: Marine Transportation Challenges – 2022» (AMTC-2022). It is the first time when the problems of the maritime transport and ecology in the Arctic will be discussed globally at the University campus. The Conference is going to become a “smart” platform for discussion and exchange of ideas between Russian and international organizations, executive bodies, business community, research and educational organizations. Apart from main sections, in case of the face-to-face Conference, we will be happy to organize an extensive cultural program in Saint-Petersburg with excursions and informal cocktail. We are looking forward to seeing you as a participant!",
@@ -68,5 +66,18 @@ September 30, 2022
 
 Conference
 October 7-8, 2022`,
+	},
+}
+
+var AboutContent = struct {
+	Title string
+	Items []string
+}{
+	Title: "Conference sections",
+	Items: []string{
+		"Education and professional training for the Arctic shipping industry",
+		"Arctic shipping: safety, environment, legal regulation",
+		"Innovative technologies for polar shipping: research & development",
+		"Development of Sea Ports in the Arctic",
 	},
 }

@@ -3,40 +3,21 @@ package main
 import (
 	"fmt"
 	"log"
-
-	"github.com/gofiber/template/html"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/rmnvlv/Web-Arctic/database"
-	"github.com/rmnvlv/Web-Arctic/dynamic"
+	"github.com/gofiber/fiber/v2/middleware/basicauth"
+	"github.com/gofiber/template/html"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
-func initDatabase() {
-	var err error
-	database.DBconn, err = gorm.Open(sqlite.Open("test.db"))
-
-	if err != nil {
-		panic("Failed to connect to db")
-	}
-	fmt.Println("Succsess to connect to db")
-
-	database.DBconn.AutoMigrate(&dynamic.Participant{})
-	fmt.Println("DB migratetd")
-}
-
-// Init routes to get particions
-func initDynamicRoutes(app *fiber.App) {
-
-	admin := app.Group("/admin")
-	dynamic.InitAdminRouter(admin)
-
-	user := app.Group("/user")
-	dynamic.InitUserRoutes(user)
-}
+var (
+	DB *gorm.DB
+)
 
 func main() {
+	fmt.Println(time.Now().Unix())
 	engine := html.New("./views", ".html")
 
 	app := fiber.New(fiber.Config{
@@ -44,8 +25,14 @@ func main() {
 		ViewsLayout: "main",
 	})
 
-	initDatabase()
-	initDynamicRoutes(app)
+	DB, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+	if err != nil {
+		panic("failed to connect database")
+	}
+	if err := DB.AutoMigrate(&Participant{}); err != nil {
+		panic("failed to migrate database")
+
+	}
 
 	app.Static("/a", "./assets")
 
@@ -61,9 +48,9 @@ func main() {
 	app.Get("/about", func(c *fiber.Ctx) error {
 		title := "About"
 		return c.Render("about", fiber.Map{
-			"Title": title,
+			"Title":   title,
 			"Links":   Links,
-
+			"Content": AboutContent,
 		})
 	})
 
@@ -74,7 +61,6 @@ func main() {
 			"Title":   title,
 			"Content": content,
 			"Links":   Links,
-
 		})
 	})
 
@@ -85,9 +71,52 @@ func main() {
 			"Title":   title,
 			"Content": content,
 			"Links":   Links,
-
 		})
 	})
+
+	app.Get("/requirements", func(c *fiber.Ctx) error {
+		title := "Requirements "
+		content := "Article template will be posted later."
+		return c.Render("basic", fiber.Map{
+			"Title":   title,
+			"Links":   Links,
+			"Content": content,
+		})
+	})
+
+	app.Get("/general-information", func(c *fiber.Ctx) error {
+		title := "General information "
+		return c.Render("general-information", fiber.Map{
+			"Title": title,
+			"Links": Links,
+		})
+	})
+
+	app.Get("/registration-and-submission", func(c *fiber.Ctx) error {
+		title := "Registration and submission "
+		return c.Render("basic", fiber.Map{
+			"Title":   title,
+			"Links":   Links,
+			"Content": "TODO: Registration and submission form",
+		})
+	})
+
+	app.Post("/registration-and-submission", registerNewParticipant)
+
+	admin := app.Group("/admin", basicauth.New(basicauth.Config{
+		Users: map[string]string{
+			"admin": "123456", //insecure - TODO: get password from env
+		},
+	}))
+	admin.Get("/", func(c *fiber.Ctx) error {
+		title := "Admin"
+		return c.Render("admin", fiber.Map{
+			"Title":   title,
+			"Links":   Links,
+			"Content": "Admin",
+		})
+	})
+	admin.Get("/csv", downloadCSV)
 
 	app.Use(func(c *fiber.Ctx) error {
 		title := "Page Not Found"
@@ -95,7 +124,6 @@ func main() {
 			"Title":   title,
 			"Content": title,
 			"Links":   Links,
-
 		})
 	})
 

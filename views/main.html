@@ -10,7 +10,7 @@
 
 </head>
 
-<body class="bg-blue-200">
+<body class="bg-blue-200 min-h-screen flex flex-col justify-items-start">
     <header class="w-full bg-gray-900 text-white sticky top-0">
         <div class="px-4 mx-auto max-w-screen-xl w-full lg:px-6">
             <a href="/" class="h-14 flex  items-center flex-row">
@@ -42,45 +42,49 @@
             <div class="w-full pb-10 lg:pb-6 lg:pt-6" id="mobile-menu">
                 <ul class="flex flex-col font-medium lg:flex-row md:justify-between lg:space-x-8">
                     {{range .Links}}
-                        <li>
-                            <a href="{{.Href}}"
-                                class="whitespace-nowrap block py-2 pr-4 pl-3 text-gray-200 border-b border-gray-400 hover:underline lg:border-0 lg:hover:text-white lg:p-0">
-                                {{.Text}}
-                            </a>
-                        </li>
+                    <li>
+                        <a href="{{.Href}}"
+                            class="whitespace-nowrap block py-2 pr-4 pl-3 text-gray-200 border-b border-gray-400 hover:underline lg:border-0 lg:hover:text-white lg:p-0">
+                            {{.Text}}
+                        </a>
+                    </li>
                     {{end}}
-                    
+
                 </ul>
             </div>
         </div>
-        <!-- Banner -->
-        <!-- <div class="py-4">
-                    <img src="/a/images/arctic-conference.jpg" alt="Arctic International Conference">
-                </div> -->
     </header>
 
-    <div class="px-4 lg:px-6 py-2.5 mx-auto max-w-screen-xl bg-blue-200">
-        {{embed}}
+    <div class="w-full bg-gray-900 pb-4">
+        <div class="px-4 lg:px-6 mx-auto max-w-screen-xl w-full">
+            <img class="object-cover w-full" src="/a/images/arctic-conference.jpg" alt="Arctic International Conference">
+        </div>
     </div>
 
-    <footer class="bg-gray-900 mx-auto w-full">
-        <h2>Get in touch through the Conference Office</h2>
-        <h3>
-            Conference Office
-        </h3>
-        <p>
-            Admiral Makarov State University of Maritime and Inland Shipping, Saint Petersburg, Russia
-        </p>
-        <p>
-            Address: 5/7, Dvinskaya str, Saint-Petersburg, Russia, 198035
-        </p>
-        <p>
-            Contact us:
-            E-mail: <a href="mailto:">amtc@gumrf.ru</a>
-        </p>
-    </footer>
+    <div class="w-full">
+        <div class=" px-4 lg:px-6 py-2.5 mx-auto max-w-screen-xl">
+            {{embed}}
+        </div>
+    </div>
 
-    <!-- <script src="https://unpkg.com/flowbite@1.4.7/dist/flowbite.js"></script> -->
+    <footer class="bg-gray-900 mt-auto w-full">
+        <div class="px-4 lg:px-6 py-2.5 mx-auto max-w-screen-xl">
+            <h2>Get in touch through the Conference Office</h2>
+            <h3>
+                Conference Office
+            </h3>
+            <p>
+                Admiral Makarov State University of Maritime and Inland Shipping, Saint Petersburg, Russia
+            </p>
+            <p>
+                Address: 5/7, Dvinskaya str, Saint-Petersburg, Russia, 198035
+            </p>
+            <p>
+                Contact us:
+                E-mail: <a href="mailto:">amtc@gumrf.ru</a>
+            </p>
+        </div>
+    </footer>
 </body>
 
 </html>
