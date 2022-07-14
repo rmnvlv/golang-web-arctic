@@ -10,6 +10,7 @@ type Participant struct {
 	Position     string `json:"position"`
 	Phone        string `json:"phone"`
 	Email        string `json:"email"`
-	Type         string `json:"type"` // Speaker/Publication/Listener
+	Type         string `json:"type"`     // Speaker/Publication/Listener
+	Planning     string `json:"planning"` // Plenary session/Section 1/Section 2/Section 3/Section 4
 	Title        string `json:"title"`
 }

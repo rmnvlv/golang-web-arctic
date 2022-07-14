@@ -18,6 +18,7 @@ func registerNewParticipant(c *fiber.Ctx) error {
 		Phone:        c.FormValue("phone"),
 		Email:        c.FormValue("email"),
 		Type:         c.FormValue("type"),
+		Planning:     c.FormValue("planning"),
 		Title:        c.FormValue("title"),
 	}
 
@@ -55,6 +56,7 @@ func downloadCSV(c *fiber.Ctx) error {
 		"Phone",
 		"Email",
 		"Type",
+		"Planning",
 		"Title",
 	}
 
@@ -70,6 +72,7 @@ func downloadCSV(c *fiber.Ctx) error {
 			participan.Phone,
 			participan.Email,
 			participan.Type,
+			participan.Planning,
 			participan.Title,
 		}
 		if err := writer.Write(row); err != nil {
