@@ -1,7 +1,16 @@
-<div class="pt-4">
-    {{range .Content}}
-        <h2 class="py-4 self-center text-xl font-semibold">{{.Title}}</h2>
-        <p class="text-gray-700">{{.Paragraph}}</p>
+<div class=" text-gray-700">
+    {{range .Content.Info}}
+    <h2 class="pb-2 pt-10 self-center text-xl font-semibold">{{.Title}}</h2>
+    <p class="text-gray-700">{{.Paragraph}}</p>
+    {{end}}
+    
+    <h2 class="pb-2 pt-10 self-center text-xl font-semibold">{{.Content.Schedule.Title}}</h2>
+    <h3 class="text-lg font-medium">{{.Content.Schedule.Subtitle}}</h3>
 
+    {{range .Content.Schedule.Items}}
+        <div class="p-4">
+            <p class="">{{.Text}}</p>
+            <p class="font-medium italic">{{.Date}}</p>
+        </div>
     {{end}}
 </div>

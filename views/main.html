@@ -6,15 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{.Title}} | AMTC</title>
     <link href="/a/css/main.css" rel="stylesheet">
-    <link href="../assets/css/main.css" rel="stylesheet">
-
 </head>
 
-<body class="bg-blue-200 min-h-screen flex flex-col justify-items-start">
-    <header class="w-full bg-gray-900 text-white sticky top-0">
+<body class="font-sans bg-sky-200 min-h-screen flex flex-col justify-items-start">
+    <header class="w-full bg-sky-900 text-white sticky top-0">
         <div class="px-4 mx-auto max-w-screen-xl w-full lg:px-6">
-            <a href="/" class="h-14 flex  items-center flex-row">
-                <img src="/a/images/gumrf_logo.svg" class="mr-3 h-9" alt="GUMRF logo" />
+            <a href="/" class="h-14 flex  items-center flex-row w-32">
+                <img src="/a/images/gumrf_logo.svg" class="mr-3 h-9 bg-white rounded-full p-0.5" alt="GUMRF logo" />
                 <div class="self-center text-xl font-semibold whitespace-nowrap">
                     AMTC
                 </div>
@@ -39,7 +37,7 @@
                 </button>
             </div> -->
             <!--  -->
-            <div class="w-full pb-10 lg:pb-6 lg:pt-6" id="mobile-menu">
+            <div class="w-full pb-10 lg:pb-6 lg:pt-4" id="mobile-menu">
                 <ul class="flex flex-col font-medium lg:flex-row md:justify-between lg:space-x-8">
                     {{range .Links}}
                     <li>
@@ -49,40 +47,43 @@
                         </a>
                     </li>
                     {{end}}
-
                 </ul>
             </div>
         </div>
     </header>
 
-    <div class="w-full bg-gray-900 pb-4">
+    <div class="w-full bg-sky-900 pb-4">
         <div class="px-4 lg:px-6 mx-auto max-w-screen-xl w-full">
-            <img class="object-cover w-full" src="/a/images/arctic-conference.jpg" alt="Arctic International Conference">
+            <img class="object-cover w-full" src="/a/images/arctic-conference.jpg"
+                alt="Arctic International Conference">
         </div>
     </div>
 
     <div class="w-full">
-        <div class=" px-4 lg:px-6 py-2.5 mx-auto max-w-screen-xl">
+        <div class=" px-4 lg:px-6 py-4 mx-auto max-w-screen-xl">
             {{embed}}
         </div>
     </div>
 
-    <footer class="bg-gray-900 mt-auto w-full">
-        <div class="px-4 lg:px-6 py-2.5 mx-auto max-w-screen-xl">
-            <h2>Get in touch through the Conference Office</h2>
-            <h3>
-                Conference Office
-            </h3>
-            <p>
-                Admiral Makarov State University of Maritime and Inland Shipping, Saint Petersburg, Russia
+    <footer class="bg-sky-900 text-gray-200 mt-auto w-full">
+        <div class="px-4 lg:px-6 mx-auto max-w-screen-xl">
+            <h2 class="pb-2 pt-8 self-center text-lg">Get in touch through the Conference Office</h2>
+            <div class="">
+                <h2 class="pb-1 pt-6 self-center font-medium">Conference Office</h2>
+                <p class="italic text-gray-300">
+                    Admiral Makarov State University of Maritime and Inland Shipping, Saint-Petersburg, Russia
+                </p>
+                <h2 class="pb-1 pt-6 self-center font-medium">Address</h2>
+                <p class="italic text-gray-300">
+                    5/7, Dvinskaya str, Saint-Petersburg, Russia, 198035
+                </p>
+            </div>
+
+            <h2 class="pb-1 pt-6 self-center font-medium">Contact us</h2>
+            <p class="pb-8 text-gray-300">
+                E-mail: <a href="mailto:"><span class="underline italic">amtc@gumrf.ru</span></a>
             </p>
-            <p>
-                Address: 5/7, Dvinskaya str, Saint-Petersburg, Russia, 198035
-            </p>
-            <p>
-                Contact us:
-                E-mail: <a href="mailto:">amtc@gumrf.ru</a>
-            </p>
+
         </div>
     </footer>
 </body>
