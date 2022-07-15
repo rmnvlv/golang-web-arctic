@@ -3,11 +3,17 @@ package main
 import (
 	"encoding/csv"
 	"os"
+	"reflect"
 	"regexp"
 	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+)
+
+const (
+	ErrorMessage   = "Error occured on the server. Registration isn't completed."
+	SuccessMessage = "Registration completed successefully!"
 )
 
 func registerNewParticipant(c *fiber.Ctx) error {
@@ -18,69 +24,55 @@ func registerNewParticipant(c *fiber.Ctx) error {
 		Position:            c.FormValue("position"),
 		Phone:               c.FormValue("phone"),
 		Email:               c.FormValue("email"),
-		Type:                c.FormValue("type"),
-		Presentation:        c.FormValue("presentation"),
-		TitleOfPresentation: c.FormValue("titleofpresentation"),
+		PresentationForm:    c.FormValue("presentation-form"),
+		PresentationSection: c.FormValue("presentation-section"),
+		PresentationTitle:   c.FormValue("presentation-title"),
 	}
 
-	var formError Error
-
-	flag := true
+	var formError FormError
 
 	// Validate phone
 	val, err := regexp.MatchString(`^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$`, participant.Phone)
 	if err != nil && participant.Phone != "" || !val && participant.Phone != "" {
-		formError.Phone = "Invalid phone number"
-		flag = false
+		formError.Phone = "Phone number should be valid format."
 	}
 	//Validate surname
 	val, err = regexp.MatchString(`^[a-zA-Z]+$`, participant.Surname)
 	if err != nil || !val {
-		formError.Surname = "Invalid Surname"
-		flag = false
+		formError.Surname = "Surname can only be a-zA-Z."
 	}
 	//validate name
 	val, err = regexp.MatchString(`^[a-zA-Z]+$`, participant.Name)
 	if err != nil || !val {
-		formError.Name = "Invalid Name"
-		flag = false
+		formError.Name = "Name can only be a-zA-Z."
 	}
 	//validate email
 	val, err = regexp.MatchString(`[^@\s]+@[^@\s]+\.[^@\s]+$`, participant.Email)
 	if err != nil || !val {
-		formError.Email = "Invalid email"
-		flag = false
+		formError.Email = "Wrong email format. Example: maria@example.com."
 	}
 
-	message := "Registration not completed"
+	var message string
+	var formData Participant = participant
 
-	if flag {
+	if reflect.DeepEqual(formError, FormError{}) {
 		DB.Create(&participant)
-		message = "Registration successefully completed!"
+		message = SuccessMessage
+		formData = Participant{}
 	}
 
-	// после записи в бд форма очищается и в идеале показывается сообщене что операция прошла успешно
-	// TODO: показать сообщение об успешной операции или ошибку если такая случилась
-	// TODO: create views/registration.html
 	return c.Render("registration", fiber.Map{
-		"Title":               "Registration and submission",
-		"Links":               Content.Links,
-		"Error":               formError,
-		"Name":                participant.Name,
-		"Surname":             participant.Surname,
-		"Position":            participant.Position,
-		"Organization":        participant.Position,
-		"Type":                participant.Type,
-		"Presentation":        participant.Presentation,
-		"TitleOfPresentation": participant.TitleOfPresentation,
-		"Message":             message,
+		"Title":    "Registration and submission",
+		"Links":    Content.Links,
+		"Error":    formError,
+		"FormData": formData,
+		"Message":  message,
 	})
 }
 
 func downloadCSV(c *fiber.Ctx) error {
 	var participants []Participant
 
-	// Паника почему-то
 	DB.Find(&participants)
 
 	fileName := "./" + strconv.FormatInt(time.Now().Unix(), 10) + ".csv"
@@ -98,9 +90,9 @@ func downloadCSV(c *fiber.Ctx) error {
 		"Organization",
 		"Phone",
 		"Email",
-		"Type",
-		"Presentation",
-		"TitleOfPresentation",
+		"Presentation Form",
+		"Presentation Section",
+		"Presentation Title",
 	}
 
 	if err := writer.Write(headers); err != nil {
@@ -114,9 +106,9 @@ func downloadCSV(c *fiber.Ctx) error {
 			participan.Organization,
 			participan.Phone,
 			participan.Email,
-			participan.Type,
-			participan.Presentation,
-			participan.TitleOfPresentation,
+			participan.PresentationForm,
+			participan.PresentationSection,
+			participan.PresentationTitle,
 		}
 		if err := writer.Write(row); err != nil {
 			panic(err)
