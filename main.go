@@ -25,7 +25,8 @@ func main() {
 		ViewsLayout: "main",
 	})
 
-	DB, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+	var err error
+	DB, err = gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
@@ -37,20 +38,18 @@ func main() {
 	app.Static("/a", "./assets")
 
 	app.Get("/", func(c *fiber.Ctx) error {
-		title := "Index"
 		return c.Render("index", fiber.Map{
-			"Title":   title,
-			"Links":   Links,
-			"Content": homeContent,
+			"Title":   "Conference",
+			"Links":   Content.Links,
+			"Content": Content.Home,
 		})
 	})
 
 	app.Get("/about", func(c *fiber.Ctx) error {
-		title := "About"
 		return c.Render("about", fiber.Map{
-			"Title":   title,
-			"Links":   Links,
-			"Content": AboutContent,
+			"Title":   "About",
+			"Links":   Content.Links,
+			"Content": Content.About,
 		})
 	})
 
@@ -59,8 +58,8 @@ func main() {
 		content := "The conference program will be posted later."
 		return c.Render("basic", fiber.Map{
 			"Title":   title,
+			"Links":   Content.Links,
 			"Content": content,
-			"Links":   Links,
 		})
 	})
 
@@ -69,8 +68,8 @@ func main() {
 		content := "Key speakers to be determined later."
 		return c.Render("basic", fiber.Map{
 			"Title":   title,
+			"Links":   Content.Links,
 			"Content": content,
-			"Links":   Links,
 		})
 	})
 
@@ -79,7 +78,7 @@ func main() {
 		content := "Article template will be posted later."
 		return c.Render("basic", fiber.Map{
 			"Title":   title,
-			"Links":   Links,
+			"Links":   Content.Links,
 			"Content": content,
 		})
 	})
@@ -88,16 +87,14 @@ func main() {
 		title := "General information "
 		return c.Render("general-information", fiber.Map{
 			"Title": title,
-			"Links": Links,
+			"Links": Content.Links,
 		})
 	})
 
 	app.Get("/registration-and-submission", func(c *fiber.Ctx) error {
-		title := "Registration and submission "
-		return c.Render("basic", fiber.Map{
-			"Title":   title,
-			"Links":   Links,
-			"Content": "TODO: Registration and submission form",
+		return c.Render("registration", fiber.Map{
+			"Title": "Registration and submission",
+			"Links": Content.Links,
 		})
 	})
 
@@ -112,7 +109,7 @@ func main() {
 		title := "Admin"
 		return c.Render("admin", fiber.Map{
 			"Title":   title,
-			"Links":   Links,
+			"Links":   Content.Links,
 			"Content": "Admin",
 		})
 	})
@@ -123,7 +120,7 @@ func main() {
 		return c.Render("basic", fiber.Map{
 			"Title":   title,
 			"Content": title,
-			"Links":   Links,
+			"Links":   Content.Links,
 		})
 	})
 

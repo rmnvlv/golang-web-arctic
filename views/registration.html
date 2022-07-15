@@ -1,0 +1,129 @@
+<div class="mt-10 sm:mt-0 mx-auto">
+    <div class="md:grid md:grid-cols-2 md:gap-6">
+        <div class="mt-5 md:mt-0 md:col-span-2">
+            <form action="/registration-and-submission" method="POST">
+                <div class="shadow overflow-hidden sm:rounded-md">
+                    <div class="px-4 py-5 bg-white sm:p-6">
+                        <h2 class="py-5 self-center text-xl font-semibold">Registration AMTC 2022 Conference</h2>
+                        <div class="grid grid-cols-6 gap-6">
+                            <div class="col-span-6 sm:col-span-3">
+                                <label for="first-name" class="block text-sm font-medium text-gray-700">First
+                                    name</label>
+                                <input type="text" name="first-name" id="first-name" autocomplete="first-name" required
+                                    class="mt-1 focus:ring-sky-500 focus:border-sky-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
+
+                            <div class="col-span-6 sm:col-span-3">
+                                <label for="last-name" class="block text-sm font-medium text-gray-700">Last name</label>
+                                <input type="text" name="last-name" id="last-name" autocomplete="last-name" required
+                                    class="mt-1 focus:ring-sky-500 focus:border-sky-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
+
+                            <div class="col-span-6 sm:col-span-4">
+                                <label for="organization" class="block text-sm font-medium text-gray-700">
+                                    Organization
+                                </label>
+                                <input type="text" name="organization" id="organization" autocomplete="organization"
+                                    required
+                                    class="mt-1 focus:ring-sky-500 focus:border-sky-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
+
+                            <div class="col-span-6 sm:col-span-4">
+                                <label for="position" class="block text-sm font-medium text-gray-700">
+                                    Position
+                                </label>
+                                <input type="text" name="position" id="position" autocomplete="position"
+                                    class="mt-1 focus:ring-sky-500 focus:border-sky-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
+
+                            <div class="col-span-6 sm:col-span-4">
+                                <label for="phone" class="block text-sm font-medium text-gray-700">
+                                    Phone
+                                </label>
+                                <input type="text" name="phone" id="phone" autocomplete="phone"
+                                    class="mt-1 focus:ring-sky-500 focus:border-sky-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
+
+                            <div class="col-span-6 sm:col-span-4">
+                                <label for="email" class="block text-sm font-medium text-gray-700">
+                                    E-mail
+                                </label>
+                                <input type="text" name="email" id="email" autocomplete="email" required
+                                    class="mt-1 focus:ring-sky-500 focus:border-sky-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
+
+                            <div class="col-span-6 sm:col-span-4">
+                                <label for="participation-form" class="block text-sm font-medium text-gray-700">
+                                    Participation form
+                                </label>
+                                <select id="participation-form" name="participation-form" autocomplete="participation-form" required
+                                    class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm">
+                                    <option>Speaker</option>
+                                    <option>Publication</option>
+                                    <option>Listener</option>
+                                </select>
+                            </div>
+
+                            <div class="col-span-6 sm:col-span-4">
+                                <label for="presentation" class="block text-sm font-medium text-gray-700">
+                                    I am planning to make a presentation
+                                </label>
+                                <select id="presentation" name="presentation" autocomplete="presentation" required
+                                    class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm">
+                                    <option>Plenary session</option>
+                                    <option>Session 1</option>
+                                    <option>Session 2</option>
+                                    <option>Session 3</option>
+                                    <option>Session 4</option>
+                                    <option>Session 5</option>
+                                </select>
+                            </div>
+
+                            <div class="col-span-6">
+                                <label 
+                                    for="street-address"
+                                    class="block text-sm font-medium text-gray-700"
+                                >
+                                    Title of the presentation
+                                </label>
+                                <input 
+                                    type="text" 
+                                    name="presentation-title" 
+                                    id="presentation-title"
+                                    autocomplete="presentation-title"
+                                    class="mt-1 focus:ring-sky-500 focus:border-sky-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                >
+                            </div>
+
+                            <div class="col-span-6 flex items-start">
+                                <div class="flex items-center h-5">
+                                    <input id="comments" name="comments" type="checkbox"
+                                        class="focus:ring-sky-500 h-4 w-4 text-sky-600 border-gray-300 rounded">
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="comments" class="font-medium text-gray-700">Personal data</label>
+                                    <p class="text-gray-500">I consent to the processing of my personal data</p>
+                                </div>
+                            </div>
+
+                            <div class="col-span-6 flex items-start">
+                                <div class="flex items-center h-5">
+                                    <input id="comments" name="comments" type="checkbox"
+                                        class="focus:ring-sky-500 h-4 w-4 text-sky-600 border-gray-300 rounded">
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="comments" class="font-medium text-gray-700">I’m not a robot</label>
+                                    <p class="text-gray-500">Captcha</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
+                        <button type="submit"
+                            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">Save</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

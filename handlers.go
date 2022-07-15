@@ -26,11 +26,7 @@ func registerNewParticipant(c *fiber.Ctx) error {
 	// после записи в бд форма очищается и в идеале показывается сообщене что операция прошла успешно
 	// TODO: показать сообщение об успешной операции или ошибку если такая случилась
 	// TODO: create views/registration.html
-	return c.Render("registration", fiber.Map{
-		"Title": "Register for conference",
-		"Links": Links,
-		"Error": "какая-то ошибка",
-	})
+	return c.Redirect("/registration-and-submission")
 }
 
 func downloadCSV(c *fiber.Ctx) error {
