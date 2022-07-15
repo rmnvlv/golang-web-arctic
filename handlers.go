@@ -12,44 +12,69 @@ import (
 
 func registerNewParticipant(c *fiber.Ctx) error {
 	participant := Participant{
-		Surname:      c.FormValue("surname"),
-		Name:         c.FormValue("name"),
-		Organizacion: c.FormValue("organization"),
-		Position:     c.FormValue("position"),
-		Phone:        c.FormValue("phone"),
-		Email:        c.FormValue("email"),
-		Type:         c.FormValue("type"),
-		Presentation: c.FormValue("presentation"),
-		Title:        c.FormValue("title"),
+		Surname:             c.FormValue("surname"),
+		Name:                c.FormValue("name"),
+		Organization:        c.FormValue("organization"),
+		Position:            c.FormValue("position"),
+		Phone:               c.FormValue("phone"),
+		Email:               c.FormValue("email"),
+		Type:                c.FormValue("type"),
+		Presentation:        c.FormValue("presentation"),
+		TitleOfPresentation: c.FormValue("titleofpresentation"),
 	}
+
+	var formError Error
+
+	flag := true
 
 	// Validate phone
 	val, err := regexp.MatchString(`^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$`, participant.Phone)
 	if err != nil && participant.Phone != "" || !val && participant.Phone != "" {
-		return c.Send([]byte(err.Error())) // Render error
+		formError.Phone = "Invalid phone number"
+		flag = false
 	}
 	//Validate surname
 	val, err = regexp.MatchString(`^[a-zA-Z]+$`, participant.Surname)
 	if err != nil || !val {
-		return c.Send([]byte(err.Error())) // Render error
+		formError.Surname = "Invalid Surname"
+		flag = false
 	}
 	//validate name
 	val, err = regexp.MatchString(`^[a-zA-Z]+$`, participant.Name)
 	if err != nil || !val {
-		return c.Send([]byte(err.Error())) // Render error
+		formError.Name = "Invalid Name"
+		flag = false
 	}
 	//validate email
 	val, err = regexp.MatchString(`[^@\s]+@[^@\s]+\.[^@\s]+$`, participant.Email)
 	if err != nil || !val {
-		return c.Send([]byte(err.Error())) // Render error
+		formError.Email = "Invalid email"
+		flag = false
 	}
 
-	DB.Create(&participant)
+	message := "Registration not completed"
+
+	if flag {
+		DB.Create(&participant)
+		message = "Registration successefully completed!"
+	}
 
 	// после записи в бд форма очищается и в идеале показывается сообщене что операция прошла успешно
 	// TODO: показать сообщение об успешной операции или ошибку если такая случилась
 	// TODO: create views/registration.html
-	return c.Redirect("/registration-and-submission")
+	return c.Render("registration", fiber.Map{
+		"Title":               "Registration and submission",
+		"Links":               Content.Links,
+		"Error":               formError,
+		"Name":                participant.Name,
+		"Surname":             participant.Surname,
+		"Position":            participant.Position,
+		"Organization":        participant.Position,
+		"Type":                participant.Type,
+		"Presentation":        participant.Presentation,
+		"TitleOfPresentation": participant.TitleOfPresentation,
+		"Message":             message,
+	})
 }
 
 func downloadCSV(c *fiber.Ctx) error {
@@ -75,7 +100,7 @@ func downloadCSV(c *fiber.Ctx) error {
 		"Email",
 		"Type",
 		"Presentation",
-		"Title",
+		"TitleOfPresentation",
 	}
 
 	if err := writer.Write(headers); err != nil {
@@ -86,12 +111,12 @@ func downloadCSV(c *fiber.Ctx) error {
 		row := []string{
 			participan.Name,
 			participan.Surname,
-			participan.Organizacion,
+			participan.Organization,
 			participan.Phone,
 			participan.Email,
 			participan.Type,
 			participan.Presentation,
-			participan.Title,
+			participan.TitleOfPresentation,
 		}
 		if err := writer.Write(row); err != nil {
 			panic(err)
