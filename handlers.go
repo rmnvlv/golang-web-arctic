@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -89,8 +90,9 @@ func registerNewParticipant(c *fiber.Ctx) error {
 
 	var formError FormError
 
-	if ok, _ := verifyCaptcha(hCaptcha); !ok {
+	if ok, err := verifyCaptcha(hCaptcha); !ok {
 		formError.Captcha = "Please try again"
+		fmt.Println(err)
 	}
 
 	// Validate phone
@@ -152,6 +154,7 @@ func downloadCSV(c *fiber.Ctx) error {
 		"Name",
 		"Surname",
 		"Organization",
+		"Position",
 		"Phone",
 		"Email",
 		"Presentation Form",
@@ -168,6 +171,7 @@ func downloadCSV(c *fiber.Ctx) error {
 			participan.Name,
 			participan.Surname,
 			participan.Organization,
+			participan.Position,
 			participan.Phone,
 			participan.Email,
 			participan.PresentationForm,
@@ -181,5 +185,39 @@ func downloadCSV(c *fiber.Ctx) error {
 
 	writer.Flush()
 
-	return c.SendFile(fileName)
+	fileExcel := excelize.NewFile()
+
+	_ = fileExcel.NewSheet("Sheet1")
+
+	fileExcel.SetCellValue("Sheet1", "A1", "Name")
+	fileExcel.SetCellValue("Sheet1", "B1", "Surname")
+	fileExcel.SetCellValue("Sheet1", "C1", "Organization")
+	fileExcel.SetCellValue("Sheet1", "D1", "Position")
+	fileExcel.SetCellValue("Sheet1", "E1", "Phone")
+	fileExcel.SetCellValue("Sheet1", "F1", "Email")
+	fileExcel.SetCellValue("Sheet1", "G1", "PresentationForm")
+	fileExcel.SetCellValue("Sheet1", "H1", "PresentationSection")
+	fileExcel.SetCellValue("Sheet1", "I1", "PresentationTitle")
+
+	// "ABCDEFGHI"
+	for counter, participan := range participants {
+		number := strconv.Itoa(counter + 2)
+		fileExcel.SetCellValue("Sheet1", "A"+number, participan.Name)
+		fileExcel.SetCellValue("Sheet1", "B"+number, participan.Surname)
+		fileExcel.SetCellValue("Sheet1", "C"+number, participan.Organization)
+		fileExcel.SetCellValue("Sheet1", "D"+number, participan.Position)
+		fileExcel.SetCellValue("Sheet1", "E"+number, participan.Phone)
+		fileExcel.SetCellValue("Sheet1", "F"+number, participan.Email)
+		fileExcel.SetCellValue("Sheet1", "G"+number, participan.PresentationForm)
+		fileExcel.SetCellValue("Sheet1", "H"+number, participan.PresentationSection)
+		fileExcel.SetCellValue("Sheet1", "I"+number, participan.PresentationTitle)
+	}
+
+	fileNameExcel := strconv.FormatInt(time.Now().Unix(), 10) + ".xlsx" //  "./" +
+
+	if err = fileExcel.SaveAs(fileNameExcel); err != nil {
+		return err
+	}
+
+	return c.SendFile("./" + fileNameExcel)
 }
