@@ -6,6 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/basicauth"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/template/html"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -22,6 +23,8 @@ func main() {
 		Views:       engine,
 		ViewsLayout: "main",
 	})
+
+	app.Use(logger.New())
 
 	var err error
 	DB, err = gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
