@@ -16,9 +16,9 @@
 </head>
 
 <body class="font-sans bg-sky-200 min-h-screen flex flex-col justify-items-start">
-    <header class="w-full bg-sky-900 text-white sticky top-0">
-        <div class="px-4 mx-auto max-w-screen-xl w-full lg:px-6">
-            <a href="/" class="h-14 flex  items-center flex-row w-32">
+    <header class="w-full bg-sky-900 text-white lg:sticky lg:top-0">
+        <div class="px-4 mx-auto max-w-screen-xl w-full lg:px-6 relative">
+            <a href="/" class="bg-sky-900 h-14 flex  items-center flex-row w-full px-4 top-0 left-0 fixed lg:w-32 lg:px-0 lg:static">
                 <img src="/a/images/gumrf_logo.svg" class="mr-3 h-9 bg-white rounded-full p-0.5" alt="GUMRF logo" />
                 <div class="self-center text-xl font-semibold whitespace-nowrap">
                     AMTC
@@ -44,7 +44,7 @@
                 </button>
             </div> -->
             <!--  -->
-            <div class="w-full pb-10 lg:pb-6 lg:pt-4" id="mobile-menu">
+            <div class="pt-14 w-full pb-10 lg:pb-6 lg:pt-4" id="mobile-menu">
                 <ul class="flex flex-col font-medium lg:flex-row md:justify-between lg:space-x-8">
                     {{range .Links}}
                     <li>
