@@ -1,10 +1,8 @@
 package main
 
 import (
-	"flag"
-	"fmt"
 	"log"
-	"time"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/basicauth"
@@ -18,13 +16,6 @@ var (
 )
 
 func main() {
-	var host string
-	var port int
-	flag.StringVar(&host, "host", "localhost", "")
-	flag.IntVar(&port, "port", 8080, "")
-	flag.Parse()
-
-	fmt.Println(time.Now().Unix())
 	engine := html.New("./views", ".html")
 
 	app := fiber.New(fiber.Config{
@@ -131,5 +122,5 @@ func main() {
 		})
 	})
 
-	log.Fatal(app.Listen(fmt.Sprintf("%s:%d", host, port)))
+	log.Fatal(app.Listen(":" + os.Getenv("PORT")))
 }
