@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"time"
@@ -17,6 +18,12 @@ var (
 )
 
 func main() {
+	var host string
+	var port int
+	flag.StringVar(&host, "host", "localhost", "")
+	flag.IntVar(&port, "port", 8080, "")
+	flag.Parse()
+
 	fmt.Println(time.Now().Unix())
 	engine := html.New("./views", ".html")
 
@@ -124,5 +131,5 @@ func main() {
 		})
 	})
 
-	log.Fatal(app.Listen(":8080"))
+	log.Fatal(app.Listen(fmt.Sprintf("%s:%d", host, port)))
 }

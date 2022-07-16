@@ -22,8 +22,10 @@ type Participant struct {
 }
 
 type FormError struct {
+	Message string
 	Phone   string
 	Email   string
 	Name    string
 	Surname string
+	Captcha string
 }

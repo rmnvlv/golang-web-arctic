@@ -12,6 +12,13 @@
                         </div>
                         {{end}}
 
+                        {{if .Error.Message}}
+                        <div class="mt-4 p-4 mb-4 text-sm text-red-700 bg-red-300 rounded-lg border border-red-700">
+                            <span class="font-medium">Oops!</span>
+                            {{.Error.Message}}
+                        </div>
+                        {{end}}
+
                         <h2 class="pt-4 pb-10 self-center text-xl font-semibold">Registration AMTC 2022 Conference</h2>
 
                         <div class="grid grid-cols-6 gap-6">
@@ -114,6 +121,7 @@
                                     value="{{.FormData.PresentationForm}}" 
                                     required
                                     class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm">
+                                    <option hidden disabled selected value>-- select --</option>
                                     <option>Speaker</option>
                                     <option>Publication</option>
                                     <option>Listener</option>
@@ -130,6 +138,7 @@
                                     value="{{.FormData.PresentationSection}}"
                                     required
                                     class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm">
+                                    <option hidden disabled selected value>-- select --</option>
                                     <option>Plenary session</option>
                                     <option>Session 1</option>
                                     <option>Session 2</option>
@@ -153,24 +162,26 @@
 
                             <div class="col-span-6 flex items-start">
                                 <div class="flex items-center h-5">
-                                    <input id="comments" name="comments" type="checkbox"
+                                    <input id="personal-data" name="personal-data" type="checkbox" required
                                         class="focus:ring-sky-500 h-4 w-4 text-sky-600 border-gray-300 rounded">
                                 </div>
                                 <div class="ml-3 text-sm">
-                                    <label for="comments" class="font-medium text-gray-700">Personal data</label>
+                                    <label for="personal-data" class="font-medium text-gray-700">
+                                        Personal data<span class="text-red-700"> *</span>
+                                    </label>
                                     <p class="text-gray-500">I consent to the processing of my personal data</p>
                                 </div>
                             </div>
 
-                            <div class="col-span-6 flex items-start">
-                                <div class="flex items-center h-5">
-                                    <input id="comments" name="comments" type="checkbox"
-                                        class="focus:ring-sky-500 h-4 w-4 text-sky-600 border-gray-300 rounded">
+                            <div class="col-span-6 flex flex-col items-start">
+                                <div class="h-captcha" data-sitekey="7ff06ffb-01cc-4e12-a035-e22184c87106"></div>
+                                <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+                                {{if .Error.Captcha}}
+                                <div class="mt-4 p-4 mb-4 text-sm text-red-700 bg-red-300 rounded-lg border border-red-700">
+                                    <span class="font-medium">Oops!</span>
+                                    {{.Error.Captcha}}
                                 </div>
-                                <div class="ml-3 text-sm">
-                                    <label for="comments" class="font-medium text-gray-700">I’m not a robot</label>
-                                    <p class="text-gray-500">Captcha</p>
-                                </div>
+                                {{end}}
                             </div>
 
                         </div>
