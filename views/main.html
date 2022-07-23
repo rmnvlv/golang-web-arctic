@@ -1,9 +1,10 @@
-<html lang="en">
+<html lang="en" class="dark">
 
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <meta name="msapplication-TileColor" content="#da532c">
     <meta name="theme-color" content="#ffffff">
     <link rel="apple-touch-icon" sizes="180x180" href="/a/favicon/apple-touch-icon.png">
@@ -11,88 +12,113 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/a/favicon/favicon-16x16.png">
     <link rel="manifest" href="/a/favicon/site.webmanifest">
     <link rel="mask-icon" href="/a/favicon/safari-pinned-tab.svg" color="#5bbad5">
-    <link href="/a/css/main.css" rel="stylesheet">
-    <title>{{.Title}} | AMTC</title>
+  
+    <link href="/a/css/tailwind.css" rel="stylesheet">
+    <link href="/a/css/app.css" rel="stylesheet">
+
+    <title>{{if .Title}}{{.Title}} - AMTC 2022{{else}}AMTC 2022{{end}}</title>
 </head>
 
-<body class="font-sans bg-sky-200 min-h-screen flex flex-col justify-items-start">
-    <header class="w-full bg-sky-900 text-white lg:sticky lg:top-0">
-        <div class="px-4 mx-auto max-w-screen-xl w-full lg:px-6 relative">
-            <a href="/" class="bg-sky-900 h-14 flex  items-center flex-row w-full px-4 top-0 left-0 fixed lg:w-32 lg:px-0 lg:static">
-                <img src="/a/images/gumrf_logo.svg" class="mr-3 h-9 bg-white rounded-full p-0.5" alt="GUMRF logo" />
-                <div class="self-center text-xl font-semibold whitespace-nowrap">
-                    AMTC
-                </div>
+<body class="font-sans transition duration-500 bg-white text-sky-900 min-w-min">
+
+    <nav class="sticky top-0 backdrop-blur-md shadow-xl bg-base">
+        <div class="px-4 mx-auto max-w-7xl flex flex-wrap xl:flex-nowrap justify-center lg:justify-start">
+            <div class="h-20 flex flex-row w-full lg:w-auto justify-between lg:mr-8 items-center">
+            <a class="self-center lg:px-2 focus:outline-none block whitespace-nowrap text-lg font-medium hover:text-sky-800 hover:font-semibold focus:text-sky-800 text-sky-900"
+                href="/">
+                <img src="/a/images/amtc-logo.png" class="h-10 w-auto whitespace-nowrap" alt="AMTC 2022" />
             </a>
-            <!-- Humburger Menu -->
-            <!-- <div class="flex items-center">
-                <button data-collapse-toggle="mobile-menu-2" type="button"
-                    class="inline-flex items-center p-2 ml-1 text-sm text-gray-500 rounded-lg lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
-                    aria-controls="mobile-menu-2" aria-expanded="false">
+                <button
+                    id="hamburger"
+                    type="button"
+                    class="lg:hidden text-sky-900 items-center justify-center p-2 hover:text-sky-800 focus:outline-none"
+                    aria-controls="menu" 
+                    aria-expanded="false"
+                >
                     <span class="sr-only">Open main menu</span>
-                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd"
-                            d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-                            clip-rule="evenodd"></path>
+                
+                    <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                        stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
-                    <svg class="hidden w-6 h-6" fill="currentColor" viewBox="0 0 20 20"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd"
-                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                            clip-rule="evenodd"></path>
+
+                    <svg class="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                        stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
+
                 </button>
-            </div> -->
-            <!--  -->
-            <div class="pt-14 w-full pb-10 lg:pb-6 lg:pt-4" id="mobile-menu">
-                <ul class="flex flex-col font-medium lg:flex-row md:justify-between lg:space-x-8">
-                    {{range .Links}}
-                    <li>
-                        <a href="{{.Href}}"
-                            class="whitespace-nowrap block py-2 pr-4 pl-3 text-gray-200 border-b border-gray-400 hover:underline lg:border-0 lg:hover:text-white lg:p-0">
-                            {{.Text}}
-                        </a>
-                    </li>
-                    {{end}}
-                </ul>
+
+                
+            </div>
+
+
+            <ul 
+                id="menu"
+                class="transform transition-all duration-700 ease-in-out pb-5 lg:pb-0 lg:h-20 grow  w-full flex flex-col lg:justify-between lg:pt-0 lg:items-center lg:flex-row"
+            >
+                {{range .Links}}
+                <li class="flex h-11 border-b border-sky-800 lg:h-auto lg:px-2 lg:border-0">
+                    <a class="self-center underlined focus:outline-none block whitespace-nowrap text-lg font-medium hover:text-gray-700 hover:font-semibold focus:text-gray-700 text-sky-900"
+                        href="{{.Link}}">
+                        {{.Text}}
+                    </a>
+                </li>
+                {{end}}
+            </ul>
+        </div>
+    </nav>
+
+    {{if .Header}}
+    <header>
+        <div class="w-full">
+            <div class="lg:px-4 mx-auto max-w-screen-xl w-full  overflow-clip">
+                <img class="object-cover w-full lg:rounded-b-2xl" src="/a/images/amtc-banner-1.jpg"
+                    alt="Arctic International Conference">
             </div>
         </div>
     </header>
+    {{end}}
 
-    <div class="w-full bg-sky-900 pb-4">
-        <div class="px-4 lg:px-6 mx-auto max-w-screen-xl w-full">
-            <img class="object-cover w-full" src="/a/images/arctic-conference.jpg"
-                alt="Arctic International Conference">
+    <main class="">
+        <div class="w-full">
+            <div class=" px-4 lg:px-6 mx-auto max-w-screen-xl">
+                {{embed}}
+            </div>
         </div>
-    </div>
+    </main>
 
-    <div class="w-full">
-        <div class=" px-4 lg:px-6 py-4 mx-auto max-w-screen-xl">
-            {{embed}}
-        </div>
-    </div>
+    <footer class="bg-sky-200 mt-auto w-full">
+        <div class="px-4 pb-8 lg:px-6 mx-auto max-w-screen-xl">
+            <h2 class=" pt-8 self-center text-lg font-semibold">Get in touch through the Conference Office</h2>
 
-    <footer class="bg-sky-900 text-gray-200 mt-auto w-full">
-        <div class="px-4 lg:px-6 mx-auto max-w-screen-xl">
-            <h2 class="pb-2 pt-8 self-center text-lg">Get in touch through the Conference Office</h2>
-            <div class="">
-                <h2 class="pb-1 pt-6 self-center font-medium">Conference Office</h2>
-                <p class="italic text-gray-300">
-                    Admiral Makarov State University of Maritime and Inland Shipping, Saint-Petersburg, Russia
-                </p>
-                <h2 class="pb-1 pt-6 self-center font-medium">Address</h2>
-                <p class="italic text-gray-300">
-                    5/7, Dvinskaya str, Saint-Petersburg, Russia, 198035
-                </p>
+            <div class="grid grid-rows-3 md:grid-rows-1 md:grid-cols-3 md:gap-5">
+                <div class="">
+                    <h2 class="pb-1 pt-6 self-center font-semibold">Conference Office</h2>
+                    <p class="itali">Admiral Makarov State University of Maritime and Inland Shipping, Saint-Petersburg, Russia</p>
+                </div>
+
+                <div class="">
+                    <h2 class="pb-1 pt-6 self-center font-semibold">Address</h2>
+                    <p class="itali">5, Zanevsky prospect, St. Petersburg, Russia</p>
+                </div>
+                
+                <div class="">
+                    <h2 class="pb-1 pt-6 self-center font-semibold">Address for correspondence</h2>
+                    <p class="itali">5/7, Dvinskaya str, St. Petersburg, Russia, 198035</p>
+                </div>
+
             </div>
 
-            <h2 class="pb-1 pt-6 self-center font-medium">Contact us</h2>
-            <p class="pb-8 text-gray-300">
-                E-mail: <a href="mailto:"><span class="underline italic">amtc@gumrf.ru</span></a>
-            </p>
+            <h2 class="pb-1 pt-6 self-center font-semibold">Contact us</h2>
+            <p class="">E-mail: <a href="mailto:"><span class="underline italic">amtc@gumrf.ru</span></a></p>
+            <p class="">Tel.: <a href="phone:"><span class="underline italic">+7 (812) 748-96-01</span></a></p>
 
         </div>
     </footer>
+
 </body>
+
+<script src="/a/js/menu.js"></script>
 
 </html>

@@ -127,16 +127,17 @@ func registerNewParticipant(c *fiber.Ctx) error {
 		formError.Message = ErrorMessage
 	}
 
-	return c.Render("registration", fiber.Map{
-		"Title":    "Registration and submission",
-		"Links":    Content.Links,
-		"Error":    formError,
-		"FormData": formData,
-		"Message":  message,
-	})
+	data := fiber.Map{}
+	data["Title"] = "Registration and submission"
+	data["Links"] = Links
+	data["Error"] = formError
+	data["FormData"] = formData
+	data["Message"] = message
+
+	return c.Render("registration", data)
 }
 
-func downloadCSV(c *fiber.Ctx) error {
+func downloadFile(c *fiber.Ctx) error {
 	var participants []Participant
 
 	DB.Find(&participants)

@@ -1,6 +1,6 @@
 <div class="mt-10 sm:mt-0 mx-auto">
     <div class="md:grid md:grid-cols-2 md:gap-6">
-        <div class="mt-5 md:mt-0 md:col-span-2">
+        <div class="mt-5 md:mt-0 md:col-span-2 lg:pt-8">
             <form action="/registration-and-submission" method="POST">
                 <div class="shadow overflow-hidden sm:rounded-md">
                     <div class="px-4 py-5 bg-white sm:p-6">
@@ -23,7 +23,7 @@
 
                         <div class="grid grid-cols-6 gap-6">
                             <div class="col-span-6 sm:col-span-3">
-                                <label for="name" class="block text-sm font-medium text-gray-700">
+                                <label for="name" class="block text-sm font-medium">
                                     Name<span class="text-red-700"> *</span>
                                 </label>
                                 <input type="text" name="name" id="first-name" value="{{.FormData.Name}}" required
@@ -37,7 +37,7 @@
                             </div>
 
                             <div class="col-span-6 sm:col-span-3">
-                                <label for="surname" class="block text-sm font-medium text-gray-700">
+                                <label for="surname" class="block text-sm font-medium">
                                     Surname<span class="text-red-700"> *</span>
                                 </label>
                                 <input type="text" name="surname" id="surname" value="{{.FormData.Surname}}" required
@@ -51,7 +51,7 @@
                             </div>
 
                             <div class="col-span-6 sm:col-span-4">
-                                <label for="organization" class="block text-sm font-medium text-gray-700">
+                                <label for="organization" class="block text-sm font-medium">
                                     Organization<span class="text-red-700"> *</span>
                                 </label>
                                 <input 
@@ -63,7 +63,7 @@
                             </div>
 
                             <div class="col-span-6 sm:col-span-4">
-                                <label for="position" class="block text-sm font-medium text-gray-700">
+                                <label for="position" class="block text-sm font-medium">
                                     Position
                                 </label>
                                 <input 
@@ -75,7 +75,7 @@
                             </div>
 
                             <div class="col-span-6 sm:col-span-4">
-                                <label for="phone" class="block text-sm font-medium text-gray-700">
+                                <label for="phone" class="block text-sm font-medium">
                                     Phone 
                                 </label>
                                 <input 
@@ -93,7 +93,7 @@
                             </div>
 
                             <div class="col-span-6 sm:col-span-4">
-                                <label for="email" class="block text-sm font-medium text-gray-700">
+                                <label for="email" class="block text-sm font-medium">
                                     E-mail<span class="text-red-700"> *</span>
                                 </label>
                                 <input 
@@ -112,7 +112,7 @@
                             </div>
 
                             <div class="col-span-6 sm:col-span-4">
-                                <label for="presentation-form" class="block text-sm font-medium text-gray-700">
+                                <label for="presentation-form" class="block text-sm font-medium">
                                     Participation form
                                 </label>
                                 <select 
@@ -129,9 +129,7 @@
                             </div>
 
                             <div class="col-span-6 sm:col-span-4">
-                                <label for="presentation-section" class="block text-sm font-medium text-gray-700">
-                                    I am planning to make a presentation
-                                </label>
+                                <label for="presentation-section" class="block text-sm font-medium">I am planning to make a presentation/ to publish a paper</label>
                                 <select 
                                     id="presentation-section" 
                                     name="presentation-section" 
@@ -140,16 +138,15 @@
                                     class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm">
                                     <option hidden disabled selected value>-- select --</option>
                                     <option>Plenary session</option>
-                                    <option>Session 1</option>
-                                    <option>Session 2</option>
-                                    <option>Session 3</option>
-                                    <option>Session 4</option>
-                                    <option>Session 5</option>
+                                    <option>1. Education and professional training for the Arctic shipping industry</option>
+                                    <option>2. Arctic shipping: safety, environment, legal regulation</option>
+                                    <option>3. Innovative technologies for polar shipping: research & development</option>
+                                    <option>4. Development of Sea Ports in the Arctic</option>
                                 </select>
                             </div>
 
                             <div class="col-span-6">
-                                <label for="presentation-title" class="block text-sm font-medium text-gray-700">
+                                <label for="presentation-title" class="block text-sm font-medium">
                                     Title of the presentation
                                 </label>
                                 <input 
@@ -166,7 +163,7 @@
                                         class="focus:ring-sky-500 h-4 w-4 text-sky-600 border-gray-300 rounded">
                                 </div>
                                 <div class="ml-3 text-sm">
-                                    <label for="personal-data" class="font-medium text-gray-700">
+                                    <label for="personal-data" class="font-medium">
                                         Personal data<span class="text-red-700"> *</span>
                                     </label>
                                     <p class="text-gray-500">I consent to the processing of my personal data</p>

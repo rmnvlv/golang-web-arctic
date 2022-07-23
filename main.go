@@ -48,91 +48,72 @@ func main() {
 	app.Static("/a", "./assets")
 
 	app.Get("/", func(c *fiber.Ctx) error {
-		return c.Render("index", fiber.Map{
-			"Title":   "Conference",
-			"Links":   Content.Links,
-			"Content": Content.Home,
-		})
-	})
-
-	app.Get("/about", func(c *fiber.Ctx) error {
-		return c.Render("about", fiber.Map{
-			"Title":   "About",
-			"Links":   Content.Links,
-			"Content": Content.About,
-		})
+		data := IndexPage
+		data["Links"] = Links
+		data["Header"] = true
+		return c.Render("index", data)
 	})
 
 	app.Get("/programme-overview", func(c *fiber.Ctx) error {
-		title := "Programme Overview"
-		content := "The conference program will be posted later."
-		return c.Render("basic", fiber.Map{
-			"Title":   title,
-			"Links":   Content.Links,
-			"Content": content,
-		})
+		data := fiber.Map{}
+		data["Links"] = Links
+		data["Title"] = "Programme Overview"
+		return c.Render("programm-overview", data)
 	})
 
 	app.Get("/keynote-speakers", func(c *fiber.Ctx) error {
-		title := "Keynote Speakers"
-		content := "Key speakers to be determined later."
-		return c.Render("basic", fiber.Map{
-			"Title":   title,
-			"Links":   Content.Links,
-			"Content": content,
-		})
+		data := fiber.Map{}
+		data["Title"] = "Keynote Speakers"
+		data["Links"] = Links
+		data["Content"] = "Key speakers to be determined later."
+		return c.Render("basic", data)
 	})
 
 	app.Get("/requirements", func(c *fiber.Ctx) error {
-		title := "Requirements "
-		content := "Article template will be posted later."
-		return c.Render("basic", fiber.Map{
-			"Title":   title,
-			"Links":   Content.Links,
-			"Content": content,
-		})
+		data := fiber.Map{}
+		data["Title"] = "Requirements"
+		data["Links"] = Links
+		data["Content"] = "Article template will be posted later."
+		return c.Render("basic", data)
 	})
 
 	app.Get("/general-information", func(c *fiber.Ctx) error {
-		title := "General information "
-		return c.Render("general-information", fiber.Map{
-			"Title": title,
-			"Links": Content.Links,
-		})
+		data := fiber.Map{}
+		data["Links"] = Links
+		return c.Render("general-information", data)
 	})
 
 	app.Get("/registration-and-submission", func(c *fiber.Ctx) error {
-		return c.Render("registration", fiber.Map{
-			"Title": "Registration and submission",
-			"Links": Content.Links,
-		})
+		data := fiber.Map{}
+		data["Title"] = "Registration and submission"
+		data["Links"] = Links
+		return c.Render("registration", data)
 	})
 
 	app.Post("/registration-and-submission", registerNewParticipant)
 
 	admin := app.Group("/admin", basicauth.New(basicauth.Config{
 		Users: map[string]string{
-			"admin": "123456", //insecure - TODO: get password from env
+			"admin": os.Getenv("ADMIN_PASSWORD"),
 		},
 	}))
 	admin.Get("/", func(c *fiber.Ctx) error {
-		title := "Admin"
-		return c.Render("admin", fiber.Map{
-			"Title":   title,
-			"Links":   Content.Links,
-			"Content": "Admin",
-		})
+		data := fiber.Map{}
+		data["Title"] = "Admin"
+		data["Links"] = Links
+		data["Content"] = "Admin panel"
+		return c.Render("admin", data)
 	})
-	admin.Get("/csv", downloadCSV)
+	admin.Get("/file", downloadFile)
 
 	app.Use(func(c *fiber.Ctx) error {
-		title := "Page Not Found"
-		return c.Render("basic", fiber.Map{
-			"Title":   title,
-			"Content": title,
-			"Links":   Content.Links,
-		})
+		data := fiber.Map{}
+		data["Title"] = "Page Not Found"
+		data["Links"] = Links
+		return c.Render("basic", data)
 	})
 
 	log.Fatal(app.Listen(":" + os.Getenv("PORT")))
+	// log.Fatal(app.Listen(":8080"))
+
 }
