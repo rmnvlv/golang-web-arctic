@@ -221,3 +221,7 @@ func downloadCSV(c *fiber.Ctx) error {
 
 	return c.SendFile("./" + fileNameExcel)
 }
+
+func UploadFile(c *fiber.Ctx) error {
+	return nil
+}

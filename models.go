@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 type Participant struct {
 	gorm.Model
-
+	Id           int `gorm:"primaryKey"`
 	Surname      string
 	Name         string
 	Organization string
@@ -19,6 +19,13 @@ type Participant struct {
 	PresentationSection string
 
 	PresentationTitle string
+}
+
+type LoadedFile struct {
+	gorm.Model
+	Id       int `gorm:"primaryKey"`
+	File     string
+	FileName string
 }
 
 type FormError struct {

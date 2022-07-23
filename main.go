@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -8,7 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/basicauth"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/template/html"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -26,12 +27,20 @@ func main() {
 
 	app.Use(logger.New())
 
+	dbURL := "postgres://psg:psg@localhost:5432/psg"
+
 	var err error
-	DB, err = gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+	DB, err = gorm.Open(postgres.Open(dbURL), &gorm.Config{})
 	if err != nil {
+		fmt.Println("error: ", err)
 		panic("failed to connect database")
 	}
+
 	if err := DB.AutoMigrate(&Participant{}); err != nil {
+		panic("failed to migrate database")
+
+	}
+	if err := DB.AutoMigrate(&LoadedFile{}); err != nil {
 		panic("failed to migrate database")
 
 	}

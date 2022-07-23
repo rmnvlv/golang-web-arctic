@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  database:
+    container_name: psg
+    image: postgres:latest
+    restart: always
+    environment:
+      - POSTGRES_USER=psg
+      - POSTGRES_PASSWORD=psg
+      - POSTGRES_DB=psg
+    ports:
+      - 5432:5432
+    volumes:
+      - ./.postgres/data:/var/lib/postgresql/data:Z
+
+#volumes:
+#  db:
