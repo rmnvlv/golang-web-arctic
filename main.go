@@ -9,7 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/basicauth"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/template/html"
-	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -27,10 +27,11 @@ func main() {
 
 	app.Use(logger.New())
 
-	dbURL := "postgres://psg:psg@localhost:5432/psg"
+	// dbURL := "postgres://psg:psg@localhost:5432/psg"
+	dbURL := "testd.db"
 
 	var err error
-	DB, err = gorm.Open(postgres.Open(dbURL), &gorm.Config{})
+	DB, err = gorm.Open(sqlite.Open(dbURL), &gorm.Config{})
 	if err != nil {
 		fmt.Println("error: ", err)
 		panic("failed to connect database")

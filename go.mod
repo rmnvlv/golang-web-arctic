@@ -8,6 +8,8 @@ require (
 	gorm.io/gorm v1.23.8
 )
 
+require github.com/mattn/go-sqlite3 v1.14.12 // indirect
+
 require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/gofiber/template v1.6.29
@@ -30,4 +32,5 @@ require (
 	golang.org/x/sys v0.0.0-20220712014510-0a85c31ab51e // indirect
 	golang.org/x/text v0.3.7 // indirect
 	gorm.io/driver/postgres v1.3.8
+	gorm.io/driver/sqlite v1.3.6
 )
