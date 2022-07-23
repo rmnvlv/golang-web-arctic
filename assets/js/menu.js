@@ -1,40 +1,31 @@
 // Burger menus
 document.addEventListener('DOMContentLoaded', function () {
-    // open
-    const burger = document.querySelectorAll('.navbar-burger');
-    const menu = document.querySelectorAll('.navbar-menu');
+    const hamburger = document.querySelector("#hamburger");
+    const menu = document.querySelector('#menu');
 
-    if (burger.length && menu.length) {
-        for (var i = 0; i < burger.length; i++) {
-            burger[i].addEventListener('click', function () {
-                for (var j = 0; j < menu.length; j++) {
-                    menu[j].classList.toggle('hidden');
-                }
-            });
-        }
+    if (screen.width < 1024){
+        menu.classList.remove('flex')
+        menu.classList.add('hidden')
     }
 
-    // close
-    const close = document.querySelectorAll('.navbar-close');
-    const backdrop = document.querySelectorAll('.navbar-backdrop');
+    hamburger.addEventListener('click', () => {
+        // for (var i=1; i<hamburger.length;i++){
+        //     console.log(hamburger[i])
+        //     hamburger[i].classList.toggle('hidden')
+        //     hamburger[i].classList.toggle('block')
+        // }
+        
+        menu.classList.toggle('flex')
+        menu.classList.toggle('hidden')
+    });
+});
 
-    if (close.length) {
-        for (var i = 0; i < close.length; i++) {
-            close[i].addEventListener('click', function () {
-                for (var j = 0; j < menu.length; j++) {
-                    menu[j].classList.toggle('hidden');
-                }
-            });
-        }
-    }
-
-    if (backdrop.length) {
-        for (var i = 0; i < backdrop.length; i++) {
-            backdrop[i].addEventListener('click', function () {
-                for (var j = 0; j < menu.length; j++) {
-                    menu[j].classList.toggle('hidden');
-                }
-            });
-        }
+window.addEventListener('resize', function (event) {
+    const menu = document.querySelector('#menu');
+    const width = event.target.screen.width
+    
+    if (width >= 1024){
+        menu.classList.remove('hidden')
+        menu.classList.add('flex')
     }
 });
