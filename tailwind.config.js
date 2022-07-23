@@ -4,8 +4,19 @@ module.exports = {
     "./assets/**/*.{html,js}",
     "./views/**/*.{html,js}",
   ],
+  darkMode: 'class',
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        base: 'rgba(186, 230, 253, .8)',
+        navy: {
+          light: '#1363DF',
+          dark: '#06283D',
+        },
+      }
+    }
   },
-  plugins: [require('@tailwindcss/forms')],
+  plugins: [
+    require('@tailwindcss/forms'),
+  ],
 }
