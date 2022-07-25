@@ -1,0 +1,40 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        <meta name="msapplication-TileColor" content="#da532c">
+        <meta name="theme-color" content="#ffffff">
+        <link rel="apple-touch-icon" sizes="180x180" href="/a/favicon/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/a/favicon/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/a/favicon/favicon-16x16.png">
+        <link rel="manifest" href="/a/favicon/site.webmanifest">
+        <link rel="mask-icon" href="/a/favicon/safari-pinned-tab.svg" color="#5bbad5">
+      
+        <link href="/a/css/tailwind.css" rel="stylesheet">
+        <link href="/a/css/app.css" rel="stylesheet">
+    
+        <title>{{if .Title}}{{.Title}} - AMTC 2022{{else}}AMTC 2022{{end}}</title>
+    </head>
+<body>
+
+<h1>Show File-select Fields</h1>
+
+<h3>Choose an article file: :</h3>
+<form action="/upload/article" method="POST" enctype="multipart/form-data">
+  <label for="article">Select a file:</label>
+  <input type="file" id="article" name="article"><br><br>
+  <input type="submit">
+</form>
+
+<h3>Choose an thusis file:</h3>
+<form action="/upload/thusis" method="POST" enctype="multipart/form-data">
+  <label for="thusis">Select a file:</label>
+  <input type="file" id="thusis" name="thusis"><br><br>
+  <input type="submit">
+</form>
+
+
+</body>
+</html>

@@ -107,6 +107,16 @@ func main() {
 	})
 	admin.Get("/file", downloadFile)
 
+	app.Get("/upload", func(c *fiber.Ctx) error {
+		data := fiber.Map{}
+		data["Title"] = "Upload"
+		return c.Render("upload", fiber.Map{})
+	})
+
+	app.Post("/upload/article", uploadArticle)
+
+	app.Post("/upload/thusis", uploadThusis)
+
 	app.Use(func(c *fiber.Ctx) error {
 		data := fiber.Map{}
 		data["Title"] = "Page Not Found"

@@ -130,6 +130,11 @@ func registerNewParticipant(c *fiber.Ctx) error {
 		messages["Error"] = ErrorMessage
 		data["Values"] = participant
 	} else {
+		// err = sendEmail(participant.Email)
+		// if err != nil {
+		// 	fmt.Println(err)
+		// }
+
 		DB.Create(&participant)
 		messages["Success"] = SuccessMessage
 	}
@@ -228,6 +233,30 @@ func downloadFile(c *fiber.Ctx) error {
 	return c.SendFile("./" + fileNameExcel)
 }
 
-func UploadFile(c *fiber.Ctx) error {
-	return nil
+func uploadArticle(c *fiber.Ctx) error {
+	fileArticle, err := c.FormFile("article")
+	if err != nil {
+		return err
+	}
+
+	err = c.SaveFile(fileArticle, fmt.Sprintf("./uploadedFiles/%s" /*strconv.FormatInt(time.Now().Unix(), 10)*/, "Article"+fileArticle.Filename))
+	if err != nil {
+		return err
+	}
+
+	return c.Render("upload", fiber.Map{})
+}
+
+func uploadThusis(c *fiber.Ctx) error {
+	fileThusis, err := c.FormFile("thusis")
+	if err != nil {
+		return err
+	}
+
+	err = c.SaveFile(fileThusis, fmt.Sprintf("./uploadedFiles/%s" /*strconv.FormatInt(time.Now().Unix(), 10)*/, "Thusis"+fileThusis.Filename))
+	if err != nil {
+		return err
+	}
+
+	return c.Render("upload", fiber.Map{})
 }
