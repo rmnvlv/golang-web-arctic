@@ -6,10 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
-	"reflect"
 	"regexp"
 	"strconv"
 	"time"
@@ -20,7 +20,7 @@ import (
 
 const (
 	ErrorMessage   = "Some form fields are entered incorrectly. Please change them."
-	SuccessMessage = "Thank you for registration!"
+	SuccessMessage = "Thank you for registration for AMTC 2022!"
 
 	hCaptchaAPIURL = "https://hcaptcha.com/siteverify"
 )
@@ -28,6 +28,7 @@ const (
 var (
 	hCaptchaSecretKey = os.Getenv("HCAPTCHA_SECRET_KEY")
 	hCaptchaSiteKey   = os.Getenv("HCAPTCHA_SITE_KEY")
+	ErrCaptchaEmpty   = errors.New("captcha is empty")
 )
 
 // Response is the hcaptcha JSON response.
@@ -41,7 +42,7 @@ type Response struct {
 
 func verifyCaptcha(captcha string) (bool, error) {
 	if captcha == "" {
-		return false, errors.New("captcha is empty")
+		return false, ErrCaptchaEmpty
 	}
 
 	form := url.Values{}
@@ -88,51 +89,55 @@ func registerNewParticipant(c *fiber.Ctx) error {
 
 	hCaptcha := c.FormValue("h-captcha-response")
 
-	var formError FormError
+	formErrors := make(map[string]string)
 
 	if ok, err := verifyCaptcha(hCaptcha); !ok {
-		formError.Captcha = "Please try again"
-		fmt.Println(err)
+		if errors.Is(err, ErrCaptchaEmpty) {
+			formErrors["Captcha"] = "Сaptcha is not passed"
+			// formError.Captcha = "Сaptcha is not passed"
+		} else {
+			// formError.Captcha = "Please try again"
+			formErrors["Captcha"] = "Please try again"
+		}
+		log.Println(err)
 	}
 
 	// Validate phone
 	val, err := regexp.MatchString(`^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$`, participant.Phone)
 	if err != nil && participant.Phone != "" || !val && participant.Phone != "" {
-		formError.Phone = "Phone number should be valid format."
+		formErrors["Phone"] = "Phone number should be valid format."
 	}
 	//Validate surname
 	val, err = regexp.MatchString(`^[a-zA-Z]+$`, participant.Surname)
 	if err != nil || !val {
-		formError.Surname = "Surname can only be a-zA-Z."
+		formErrors["Surname"] = "Surname can only be a-zA-Z."
 	}
 	//validate name
 	val, err = regexp.MatchString(`^[a-zA-Z]+$`, participant.Name)
 	if err != nil || !val {
-		formError.Name = "Name can only be a-zA-Z."
+		formErrors["Name"] = "Name can only be a-zA-Z."
 	}
 	//validate email
 	val, err = regexp.MatchString(`[^@\s]+@[^@\s]+\.[^@\s]+$`, participant.Email)
 	if err != nil || !val {
-		formError.Email = "Wrong email format. Example: maria@example.com."
-	}
-
-	var message string
-	var formData Participant = participant
-
-	if reflect.DeepEqual(formError, FormError{}) {
-		DB.Create(&participant)
-		message = SuccessMessage
-		formData = Participant{}
-	} else {
-		formError.Message = ErrorMessage
+		formErrors["Email"] = "Wrong email format. Example: mail@example.com"
 	}
 
 	data := fiber.Map{}
+	messages := make(map[string]string)
+
+	if len(formErrors) > 0 {
+		messages["Error"] = ErrorMessage
+		data["Values"] = participant
+	} else {
+		DB.Create(&participant)
+		messages["Success"] = SuccessMessage
+	}
+
 	data["Title"] = "Registration and submission"
 	data["Links"] = Links
-	data["Error"] = formError
-	data["FormData"] = formData
-	data["Message"] = message
+	data["Errors"] = formErrors
+	data["Message"] = messages
 
 	return c.Render("registration", data)
 }
@@ -142,7 +147,7 @@ func downloadFile(c *fiber.Ctx) error {
 
 	DB.Find(&participants)
 
-	fileName := "./" + strconv.FormatInt(time.Now().Unix(), 10) + ".csv"
+	fileName := "./" + strconv.FormatInt(time.Now().Unix(), 10) + ".xlsx"
 	file, err := os.Create(fileName)
 	if err != nil {
 		return err

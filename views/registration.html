@@ -1,51 +1,52 @@
+<div class="px-4 mx-auto max-w-screen-xl">
 <div class="mt-10 sm:mt-0 mx-auto">
     <div class="md:grid md:grid-cols-2 md:gap-6">
         <div class="mt-5 md:mt-0 md:col-span-2 lg:pt-8">
             <form action="/registration-and-submission" method="POST">
                 <div class="shadow overflow-hidden sm:rounded-md">
-                    <div class="px-4 py-5 bg-white sm:p-6">
-
-                        {{if .Message}}
-                        <div class="mt-4 p-4 mb-4 text-sm text-green-700 bg-green-300 rounded-lg border border-green-700">
-                            {{.Message}}
+                    <div class="px-4 py-5 bg-white text-sky-900 tracking-wide sm:p-6 min-h-max">
+                        <h2 class="py-6 self-center text-xl font-semibold">Register for AMTC 2022 Conference</h2>
+                        
+                        {{if .Message.Success}}
+                        <div class="p-4 mb-4 text-sm text-green-700 bg-green-300 rounded-lg border border-green-700">
+                            {{.Message.Success}}
                             <span class="font-medium">&#9996;</span>
                         </div>
                         {{end}}
 
-                        {{if .Error.Message}}
-                        <div class="mt-4 p-4 mb-4 text-sm text-red-700 bg-red-300 rounded-lg border border-red-700">
-                            <span class="font-medium">Oops!</span>
-                            {{.Error.Message}}
+                        {{if .Message.Error}}
+                        <div class=" p-4 mb-4 text-sm text-red-700 bg-red-300 rounded-lg border border-red-700">
+                            <!-- <span class="font-medium">Some fields has errors!</span> -->
+                            {{.Message.Error}}
                         </div>
                         {{end}}
 
-                        <h2 class="pt-4 pb-10 self-center text-xl font-semibold">Registration AMTC 2022 Conference</h2>
 
                         <div class="grid grid-cols-6 gap-6">
-                            <div class="col-span-6 sm:col-span-3">
+                            <div class="col-span-6 sm:col-span-2">
                                 <label for="name" class="block text-sm font-medium">
                                     Name<span class="text-red-700"> *</span>
                                 </label>
-                                <input type="text" name="name" id="first-name" value="{{.FormData.Name}}" required
+                                <input type="text" name="name" id="first-name" value="{{.Values.Name}}" required
                                     class="mt-1 focus:ring-sky-500 focus:border-sky-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                {{if .Error.Name}}
+                                {{if .Errors.Name}}
                                 <div class="mt-4 p-4 mb-4 text-sm text-red-700 bg-red-300 rounded-lg border border-red-700">
-                                    <span class="font-medium">Oops!</span>
-                                    {{.Error.Name}}
+                                    <!-- <span class="font-medium">Oops!</span> -->
+                                    {{.Errors.Name}}
                                 </div>
                                 {{end}}
                             </div>
 
-                            <div class="col-span-6 sm:col-span-3">
+                            <div class="col-span-6 sm:col-span-2">
                                 <label for="surname" class="block text-sm font-medium">
                                     Surname<span class="text-red-700"> *</span>
                                 </label>
-                                <input type="text" name="surname" id="surname" value="{{.FormData.Surname}}" required
+                                <input type="text" name="surname" id="surname" value="{{.Values.Surname}}" required
                                     class="mt-1 focus:ring-sky-500 focus:border-sky-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                {{if .Error.Surname}}
+                                {{if .Errors.Surname}}
                                 <div class="mt-4 p-4 mb-4 text-sm text-red-700 bg-red-300 rounded-lg border border-red-700">
-                                    <span class="font-medium">Oops!</span>
-                                    {{.Error.Surname}}
+                                    <!-- <span class="font-medium">Oops!</span> -->
+                                    {{.Errors.Surname}}
                                 </div>
                                 {{end}}
                             </div>
@@ -58,7 +59,7 @@
                                     type="text"
                                     name="organization"
                                     id="organization"
-                                    value="{{.FormData.Organization}}" required
+                                    value="{{.Values.Organization}}" required
                                     class="mt-1 focus:ring-sky-500 focus:border-sky-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
                             </div>
 
@@ -70,7 +71,7 @@
                                     type="text" 
                                     name="position" 
                                     id="position" 
-                                    value="{{.FormData.Position}}"
+                                    value="{{.Values.Position}}"
                                     class="mt-1 focus:ring-sky-500 focus:border-sky-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
                             </div>
 
@@ -82,12 +83,12 @@
                                     type="text" 
                                     name="phone" 
                                     id="phone"
-                                    value="{{.FormData.Phone}}"
+                                    value="{{.Values.Phone}}"
                                     class="mt-1 focus:ring-sky-500 focus:border-sky-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                {{if .Error.Phone}}
+                                {{if .Errors.Phone}}
                                 <div class="mt-4 p-4 mb-4 text-sm text-red-700 bg-red-300 rounded-lg border border-red-700">
-                                    <span class="font-medium">Oops!</span>
-                                    {{.Error.Phone}}
+                                    <!-- <span class="font-medium">Oops!</span> -->
+                                    {{.Errors.Phone}}
                                 </div>
                                 {{end}}
                             </div>
@@ -100,13 +101,13 @@
                                     type="text"
                                     name="email"
                                     id="email"
-                                    value="{{.FormData.Email}}"
+                                    value="{{.Values.Email}}"
                                     required
                                     class="mt-1 focus:ring-sky-500 focus:border-sky-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                {{if .Error.Email}}
+                                {{if .Errors.Email}}
                                 <div class="mt-4 p-4 mb-4 text-sm text-red-700 bg-red-300 rounded-lg border border-red-700">
-                                    <span class="font-medium">Oops!</span>
-                                    {{.Error.Email}}
+                                    <!-- <span class="font-medium">Oops!</span> -->
+                                    {{.Errors.Email}}
                                 </div>
                                 {{end}}
                             </div>
@@ -118,7 +119,7 @@
                                 <select 
                                     id="presentation-form" 
                                     name="presentation-form" 
-                                    value="{{.FormData.PresentationForm}}" 
+                                    value="{{.Values.PresentationForm}}" 
                                     required
                                     class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm">
                                     <option hidden disabled selected value>-- select --</option>
@@ -133,7 +134,7 @@
                                 <select 
                                     id="presentation-section" 
                                     name="presentation-section" 
-                                    value="{{.FormData.PresentationSection}}"
+                                    value="{{.Values.PresentationSection}}"
                                     required
                                     class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm">
                                     <option hidden disabled selected value>-- select --</option>
@@ -153,11 +154,11 @@
                                     type="text" 
                                     name="presentation-title" 
                                     id="presentation-title"
-                                    value="{{.FormData.PresentationTitle}}"
+                                    value="{{.Values.PresentationTitle}}"
                                     class="mt-1 focus:ring-sky-500 focus:border-sky-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
                             </div>
 
-                            <div class="col-span-6 flex items-start">
+                            <div class="col-span-6 sm:col-span-4 flex items-start">
                                 <div class="flex items-center h-5">
                                     <input id="personal-data" name="personal-data" type="checkbox" required
                                         class="focus:ring-sky-500 h-4 w-4 text-sky-600 border-gray-300 rounded">
@@ -170,13 +171,14 @@
                                 </div>
                             </div>
 
-                            <div class="col-span-6 flex flex-col items-start">
-                                <div class="h-captcha" data-sitekey="7ff06ffb-01cc-4e12-a035-e22184c87106"></div>
-                                <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
-                                {{if .Error.Captcha}}
-                                <div class="mt-4 p-4 mb-4 text-sm text-red-700 bg-red-300 rounded-lg border border-red-700">
-                                    <span class="font-medium">Oops!</span>
-                                    {{.Error.Captcha}}
+                            <div class="col-span-6 flex flex-col items-start justify-between min-h-max">
+                                <div class="h-captcha w-full h-full" data-sitekey="7ff06ffb-01cc-4e12-a035-e22184c87106">
+                                    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+                                </div>
+                                {{if .Errors.Captcha}}
+                                <div class="mt-4 p-4 mb-4 w-full text-sm text-red-700 bg-red-300 rounded-lg border border-red-700">
+                                    <!-- <span class="font-medium">Oops!</span> -->
+                                    {{.Errors.Captcha}}
                                 </div>
                                 {{end}}
                             </div>
@@ -191,4 +193,5 @@
             </form>
         </div>
     </div>
+</div>
 </div>

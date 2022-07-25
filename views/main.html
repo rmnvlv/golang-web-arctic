@@ -19,9 +19,9 @@
     <title>{{if .Title}}{{.Title}} - AMTC 2022{{else}}AMTC 2022{{end}}</title>
 </head>
 
-<body class="font-sans transition duration-500 bg-white text-sky-900 min-w-min">
+<body class="font-sans transition duration-500 bg-white text-sky-900 min-w-min min-h-screen flex flex-col ">
 
-    <nav class="sticky top-0 backdrop-blur-md shadow-xl bg-base">
+    <nav class="sticky z-50 top-0 backdrop-blur-md shadow-xl bg-base">
         <div class="px-4 mx-auto max-w-7xl flex flex-wrap xl:flex-nowrap justify-center lg:justify-start">
             <div class="h-20 flex flex-row w-full lg:w-auto justify-between lg:mr-8 items-center">
             <a class="self-center lg:px-2 focus:outline-none block whitespace-nowrap text-lg font-medium hover:text-sky-800 hover:font-semibold focus:text-sky-800 text-sky-900"
@@ -69,23 +69,8 @@
         </div>
     </nav>
 
-    {{if .Header}}
-    <header>
-        <div class="w-full">
-            <div class="lg:px-4 mx-auto max-w-screen-xl w-full  overflow-clip">
-                <img class="object-cover w-full lg:rounded-b-2xl" src="/a/images/amtc-banner-1.jpg"
-                    alt="Arctic International Conference">
-            </div>
-        </div>
-    </header>
-    {{end}}
-
-    <main class="">
-        <div class="w-full">
-            <div class=" px-4 lg:px-6 mx-auto max-w-screen-xl">
-                {{embed}}
-            </div>
-        </div>
+    <main class="flex-1">
+        {{embed}}
     </main>
 
     <footer class="bg-sky-200 mt-auto w-full">

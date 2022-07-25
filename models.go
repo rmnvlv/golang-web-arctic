@@ -1,6 +1,8 @@
 package main
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+)
 
 type Participant struct {
 	gorm.Model
@@ -26,13 +28,4 @@ type LoadedFile struct {
 	Id       int `gorm:"primaryKey"`
 	File     string
 	FileName string
-}
-
-type FormError struct {
-	Message string
-	Phone   string
-	Email   string
-	Name    string
-	Surname string
-	Captcha string
 }

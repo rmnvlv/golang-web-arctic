@@ -1,6 +1,18 @@
-<div class="pb-8">
-    {{range .Content}}
-    <h2 class="pb-2 pt-10 self-center text-xl font-semibold">{{.Title}}</h2>
-    <p class="">{{.Paragraph}}</p>
-    {{end}}
+<div class="bg-arctic-sea-3 bg-cover bg-no-repeat bg-center bg-fixed min-h-max">
+    <div class="w-full pb-10">
+        <div class="lg:px-4 mx-auto max-w-screen-xl">
+            <div class="w-full mb-10">
+                <img class="object-cover w-full lg:rounded-b-xl shadow-xl" src="/a/images/amtc-banner-1.png"
+                    alt="Arctic International Conference">
+            </div>
+        </div>
+        <div class="px-4 mx-auto max-w-screen-xl">
+            {{range .Content}}
+            <div class="p-6 mb-10 text-white backdrop-blur-lg rounded-xl shadow-xl">
+                <h2 class="self-center text-xl font-bold">{{.Title}}</h2>
+                <p class="pt-4 font-normal tracking-wide">{{.Paragraph}}</p>
+            </div>
+            {{end}}
+        </div>
+    </div>
 </div>

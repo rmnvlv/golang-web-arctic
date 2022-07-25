@@ -13,6 +13,13 @@ module.exports = {
           light: '#1363DF',
           dark: '#06283D',
         },
+      },
+      backgroundImage: {
+        'arctic-sea-1': "url('/a/images/arctic-sea-1.jpg')",
+        'arctic-sea-2': "url('/a/images/arctic-sea-2.jpg')",
+        'arctic-sea-3': "url('/a/images/arctic-sea-3.jpg')",
+        'arctic-sea-4': "url('/a/images/arctic-sea-4.jpg')",
+        'arctic-sea-5': "url('/a/images/arctic-sea-5.jpg')",
       }
     }
   },
