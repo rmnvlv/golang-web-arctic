@@ -9,7 +9,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/basicauth"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/template/html"
-	"github.com/spf13/viper"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -19,25 +18,25 @@ var (
 )
 
 func main() {
-	viper.AddConfigPath(".")
-	viper.SetConfigName("app")
-	viper.SetConfigType("env")
+	// viper.AddConfigPath(".")
+	// viper.SetConfigName("app")
+	// viper.SetConfigType("env")
 
-	viper.AutomaticEnv()
+	// viper.AutomaticEnv()
 
-	if err := viper.ReadInConfig(); err != nil {
-		log.Fatalln(err)
-	}
+	// if err := viper.ReadInConfig(); err != nil {
+	// 	log.Fatalln(err)
+	// }
 
-	fmt.Println(viper.AllSettings())
+	// fmt.Println(viper.AllSettings())
 
-	if err := viper.Unmarshal(&auth); err != nil {
-		log.Fatal(err)
-	}
+	// if err := viper.Unmarshal(&auth); err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	if err := viper.Unmarshal(&hCaptcha); err != nil {
-		log.Fatal(err)
-	}
+	// if err := viper.Unmarshal(&hCaptcha); err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	engine := html.New("./views", ".html")
 

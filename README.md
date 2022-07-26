@@ -4,6 +4,7 @@
 
 Установить переменные окружения
 ```shel
+set -o allexport; source .env; set +o allexport 
 HCAPTCHA_SECRET_KEY="your_hcaptcha_secret_key"
 HCAPTCHA_SITE_KEY="your_hcaptcha_site_key"
 ADMIN_PASSWORD="123456"

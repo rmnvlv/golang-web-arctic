@@ -27,7 +27,11 @@ const (
 )
 
 var (
-	hCaptcha        HCaptcha
+	hCaptcha        = HCaptcha{
+		SiteKey: os.Getenv("HCAPTCHA_SITE_KEY"),
+		SecretKey: os.Getenv("HCAPTCHA_SECRET_KEY"),
+
+	}
 	ErrCaptchaEmpty = errors.New("captcha is empty")
 )
 

@@ -2,12 +2,19 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 
 	"gopkg.in/gomail.v2"
 )
 
 var (
-	auth    AuthInfo
+	auth = AuthInfo{
+		Username: os.Getenv("SMTP_USER"),
+		Password: os.Getenv("SMTP_PASSWORD"),
+		Host:     os.Getenv("SMTP_HOST"),
+		Port:     os.Getenv("SMTP_PORT"),
+	}
 	subject = "Thank you for registration for AMTC 2022"
 	message = `
 		<html>
@@ -28,7 +35,7 @@ type AuthInfo struct {
 	Username string `mapstructure:"SMTP_USER"`
 	Password string `mapstructure:"SMTP_PASSWORD"`
 	Host     string `mapstructure:"SMTP_HOST"`
-	Port     int    `mapstructure:"SMTP_PORT"`
+	Port     string `mapstructure:"SMTP_PORT"`
 }
 
 func SendMail(to To) error {
@@ -39,7 +46,8 @@ func SendMail(to To) error {
 	email.SetHeader("Subject", subject)
 	email.SetBody("text/html", fmt.Sprintf(message, to.Name))
 
-	dialer := gomail.NewDialer(auth.Host, auth.Port, auth.Username, auth.Password)
+	port, _ := strconv.Atoi(auth.Port)
+	dialer := gomail.NewDialer(auth.Host, port, auth.Username, auth.Password)
 
 	return dialer.DialAndSend(email)
 }
