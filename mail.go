@@ -1,51 +1,45 @@
 package main
 
-// import (
-// 	"fmt"
-// 	"net/smtp"
-// 	"strings"
-// )
+import (
+	"fmt"
 
-// func SendToMail(user, password, host, to, subject, body, mailtype string) error {
-// 	hp := strings.Split(host, ":")
-// 	auth := smtp.PlainAuth("", user, password, hp[0])
-// 	var content_type string
-// 	if mailtype == "html" {
-// 		content_type = "Content-Type: text/" + mailtype + "; charset=UTF-8"
-// 	} else {
-// 		content_type = "Content-Type: text/plain" + "; charset=UTF-8"
-// 	}
+	"gopkg.in/gomail.v2"
+)
 
-// 	msg := []byte("To: " + to + "\r\nFrom: <" + user + ">\r\nSubject: " + "\r\n" + content_type + "\r\n\r\n" + body)
-// 	send_to := strings.Split(to, ";")
-// 	err := smtp.SendMail(host, auth, user, send_to, msg)
-// 	return err
-// }
+var (
+	auth    AuthInfo
+	subject = "Thank you for registration for AMTC 2022"
+	message = `
+		<html>
+		<body>
+		<h3>Dear %s, Thank you for taking part in AMTC 2022!</h3>
+		<a href="#">Link to site</a>
+		</body>
+		</html>
+	`
+)
 
-// func main() {
-// 	user := "<email>"
-// 	password := "<email password>"
-// 	host := "smtp.yandex.ru:25"
-// 	to := "<email>"
+type To struct {
+	Name  string
+	Email string
+}
 
-// 	subject := "Используйте Golang для отправки почты"
+type AuthInfo struct {
+	Username string `mapstructure:"SMTP_USER"`
+	Password string `mapstructure:"SMTP_PASSWORD"`
+	Host     string `mapstructure:"SMTP_HOST"`
+	Port     int    `mapstructure:"SMTP_PORT"`
+}
 
-// 	body := `
-// <html>
-// <body>
-// <h3>
-// "Test send to email"
-// </h3>
-// </body>
-// </html>
-// `
-// 	fmt.Println("send email")
-// 	err := SendToMail(user, password, host, to, subject, body, "html")
-// 	if err != nil {
-// 		fmt.Println("Send mail error!")
-// 		fmt.Println(err)
-// 	} else {
-// 		fmt.Println("Send mail success!")
-// 	}
+func SendMail(to To) error {
 
-// }
+	email := gomail.NewMessage(gomail.SetCharset("UTF-8"), gomail.SetEncoding(gomail.Base64))
+	email.SetAddressHeader("From", auth.Username, "AMTC 2022")
+	email.SetAddressHeader("To", to.Email, to.Name)
+	email.SetHeader("Subject", subject)
+	email.SetBody("text/html", fmt.Sprintf(message, to.Name))
+
+	dialer := gomail.NewDialer(auth.Host, auth.Port, auth.Username, auth.Password)
+
+	return dialer.DialAndSend(email)
+}

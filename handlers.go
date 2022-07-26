@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/mail"
 	"net/url"
 	"os"
 	"regexp"
@@ -26,10 +27,14 @@ const (
 )
 
 var (
-	hCaptchaSecretKey = os.Getenv("HCAPTCHA_SECRET_KEY")
-	hCaptchaSiteKey   = os.Getenv("HCAPTCHA_SITE_KEY")
-	ErrCaptchaEmpty   = errors.New("captcha is empty")
+	hCaptcha        HCaptcha
+	ErrCaptchaEmpty = errors.New("captcha is empty")
 )
+
+type HCaptcha struct {
+	SiteKey   string `mapstructure:"HCAPTCHA_SITE_KEY"`
+	SecretKey string `mapstructure:"HCAPTCHA_SECRET_KEY"`
+}
 
 // Response is the hcaptcha JSON response.
 type Response struct {
@@ -46,9 +51,9 @@ func verifyCaptcha(captcha string) (bool, error) {
 	}
 
 	form := url.Values{}
-	form.Add("secret", hCaptchaSecretKey)
+	form.Add("secret", hCaptcha.SecretKey)
 	form.Add("response", captcha)
-	form.Add("sitekey", hCaptchaSiteKey)
+	form.Add("sitekey", hCaptcha.SiteKey)
 
 	resp, err := http.DefaultClient.PostForm(hCaptchaAPIURL, form)
 	if err != nil {
@@ -118,10 +123,13 @@ func registerNewParticipant(c *fiber.Ctx) error {
 		formErrors["Name"] = "Name can only be a-zA-Z."
 	}
 	//validate email
-	val, err = regexp.MatchString(`[^@\s]+@[^@\s]+\.[^@\s]+$`, participant.Email)
-	if err != nil || !val {
+	if _, err := mail.ParseAddress(participant.Email); err != nil {
 		formErrors["Email"] = "Wrong email format. Example: mail@example.com"
 	}
+	// val, err = regexp.MatchString(`[^@\s]+@[^@\s]+\.[^@\s]+$`, participant.Email)
+	// if err != nil || !val {
+	// 	formErrors["Email"] = "Wrong email format. Example: mail@example.com"
+	// }
 
 	data := fiber.Map{}
 	messages := make(map[string]string)
@@ -137,6 +145,12 @@ func registerNewParticipant(c *fiber.Ctx) error {
 
 		DB.Create(&participant)
 		messages["Success"] = SuccessMessage
+		go func() {
+			err := SendMail(To{participant.Name, participant.Email})
+			if err != nil {
+				log.Fatal(err)
+			}
+		}()
 	}
 
 	data["Title"] = "Registration and submission"
