@@ -15,6 +15,9 @@ var (
 		Host:     os.Getenv("SMTP_HOST"),
 		Port:     os.Getenv("SMTP_PORT"),
 	}
+)
+
+const (
 	subject = "Thank you for registration for AMTC 2022"
 	message = `
 		<html>
@@ -39,7 +42,6 @@ type AuthInfo struct {
 }
 
 func SendMail(to To) error {
-
 	email := gomail.NewMessage(gomail.SetCharset("UTF-8"), gomail.SetEncoding(gomail.Base64))
 	email.SetAddressHeader("From", auth.Username, "AMTC 2022")
 	email.SetAddressHeader("To", to.Email, to.Name)
