@@ -2,14 +2,10 @@ package main
 
 import (
 	"encoding/csv"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"net/http"
 	"net/mail"
-	"net/url"
 	"os"
 	"regexp"
 	"strconv"
@@ -22,66 +18,7 @@ import (
 const (
 	ErrorMessage   = "Some form fields are entered incorrectly. Please change them."
 	SuccessMessage = "Thank you for registration for AMTC 2022!"
-
-	hCaptchaAPIURL = "https://hcaptcha.com/siteverify"
 )
-
-var (
-	hCaptcha        = HCaptcha{
-		SiteKey: os.Getenv("HCAPTCHA_SITE_KEY"),
-		SecretKey: os.Getenv("HCAPTCHA_SECRET_KEY"),
-
-	}
-	ErrCaptchaEmpty = errors.New("captcha is empty")
-)
-
-type HCaptcha struct {
-	SiteKey   string `mapstructure:"HCAPTCHA_SITE_KEY"`
-	SecretKey string `mapstructure:"HCAPTCHA_SECRET_KEY"`
-}
-
-// Response is the hcaptcha JSON response.
-type Response struct {
-	ChallengeTS string   `json:"challenge_ts"`
-	Hostname    string   `json:"hostname"`
-	ErrorCodes  []string `json:"error-codes,omitempty"`
-	Success     bool     `json:"success"`
-	Credit      bool     `json:"credit,omitempty"`
-}
-
-func verifyCaptcha(captcha string) (bool, error) {
-	if captcha == "" {
-		return false, ErrCaptchaEmpty
-	}
-
-	form := url.Values{}
-	form.Add("secret", hCaptcha.SecretKey)
-	form.Add("response", captcha)
-	form.Add("sitekey", hCaptcha.SiteKey)
-
-	resp, err := http.DefaultClient.PostForm(hCaptchaAPIURL, form)
-	if err != nil {
-		return false, err
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return false, err
-	}
-
-	defer resp.Body.Close()
-
-	var response Response
-	if err := json.Unmarshal(body, &response); err != nil {
-		return false, err
-	}
-
-	if !response.Success {
-		return false, fmt.Errorf("hCaptcha: %v", response.ErrorCodes)
-	}
-
-	return true, nil
-}
 
 func registerNewParticipant(c *fiber.Ctx) error {
 	participant := Participant{
@@ -251,30 +188,104 @@ func downloadFile(c *fiber.Ctx) error {
 	return c.SendFile("./" + fileNameExcel)
 }
 
-func uploadArticle(c *fiber.Ctx) error {
-	fileArticle, err := c.FormFile("article")
+func mainView(c *fiber.Ctx) error {
+	data := IndexPage
+	data["Links"] = Links
+	data["Header"] = true
+	return c.Render("index", data)
+}
+
+func programOverviewView(c *fiber.Ctx) error {
+	data := fiber.Map{}
+	data["Links"] = Links
+	data["Title"] = "Programme Overview"
+	return c.Render("programm-overview", data)
+}
+
+func keynoteSpeakersView(c *fiber.Ctx) error {
+	data := fiber.Map{}
+	data["Title"] = "Keynote Speakers"
+	data["Links"] = Links
+	data["Content"] = "Key speakers to be determined later."
+	return c.Render("basic", data)
+}
+
+func requirementsView(c *fiber.Ctx) error {
+	data := fiber.Map{}
+	data["Title"] = "Requirements"
+	data["Links"] = Links
+	data["Content"] = "Article template will be posted later."
+	return c.Render("basic", data)
+}
+
+func generalInfoView(c *fiber.Ctx) error {
+	data := fiber.Map{}
+	data["Links"] = Links
+	return c.Render("general-information", data)
+}
+
+func registrationView(c *fiber.Ctx) error {
+	data := fiber.Map{}
+	data["Title"] = "Registration and submission"
+	data["Links"] = Links
+	return c.Render("registration", data)
+}
+
+func adminView(c *fiber.Ctx) error {
+	data := fiber.Map{}
+	data["Title"] = "Admin"
+	data["Links"] = Links
+	data["Content"] = "Admin panel"
+	return c.Render("admin", data)
+}
+
+func uploadView(c *fiber.Ctx) error {
+	code := c.Query("code")
+	fmt.Println(code)
+
+	if code == "" {
+		return c.Redirect("not-found")
+	}
+
+	// DB.First()
+
+	data := fiber.Map{}
+	data["Title"] = "Upload"
+	data["User"] = fiber.Map{
+		"Name":    "Max",
+		"Surname": "max",
+		"Email":   "max@mal.com",
+	}
+	return c.Render("upload", data)
+}
+
+func uploadArticleOrTezisi(c *fiber.Ctx) error {
+	article, err := c.FormFile("article")
 	if err != nil {
 		return err
 	}
 
-	err = c.SaveFile(fileArticle, fmt.Sprintf("./uploadedFiles/%s" /*strconv.FormatInt(time.Now().Unix(), 10)*/, "Article"+fileArticle.Filename))
+	articleFile, err := article.Open()
 	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer articleFile.Close()
+
+	if err := saveToYandexDisk(articleFile, "Test/"+article.Filename); err != nil {
+		log.Default().Panicln(err)
 		return err
 	}
+
+	// disable upload files
 
 	return c.Render("upload", fiber.Map{})
 }
 
-func uploadThusis(c *fiber.Ctx) error {
-	fileThusis, err := c.FormFile("thusis")
-	if err != nil {
-		return err
-	}
-
-	err = c.SaveFile(fileThusis, fmt.Sprintf("./uploadedFiles/%s" /*strconv.FormatInt(time.Now().Unix(), 10)*/, "Thusis"+fileThusis.Filename))
-	if err != nil {
-		return err
-	}
-
-	return c.Render("upload", fiber.Map{})
+func notFoundView(c *fiber.Ctx) error {
+	data := fiber.Map{}
+	data["Title"] = "Page Not Found"
+	data["Links"] = Links
+	data["Content"] = "Page Not Found"
+	return c.Render("basic", data)
 }

@@ -10,7 +10,6 @@ require (
 )
 
 require (
-	github.com/joho/godotenv v1.4.0 // indirect
 	github.com/mattn/go-sqlite3 v1.14.12 // indirect
 	github.com/stretchr/testify v1.7.1 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
