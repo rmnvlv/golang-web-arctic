@@ -89,14 +89,14 @@ func registerNewParticipant(c *fiber.Ctx) error {
 		// 	fmt.Println(err)
 		// }
 
+		ch := make(chan Participant, 1)
+		go worker(ch)
+		ch <- participant
+		close(ch)
+
 		DB.Create(&participant)
 		messages["Success"] = SuccessMessage
-		go func() {
-			err := SendMail(To{participant.Name, participant.Email})
-			if err != nil {
-				log.Fatal(err)
-			}
-		}()
+
 	}
 
 	data["Title"] = "Registration and submission"
@@ -297,4 +297,15 @@ func notFoundView(c *fiber.Ctx) error {
 	data["Links"] = Links
 	data["Content"] = "Page Not Found"
 	return c.Render("basic", data)
+}
+
+func worker(ch <-chan Participant) {
+	//participan := Participant{}
+	participan := <-ch
+	go func() {
+		err := SendMail(To{participan.Name, participan.Email})
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
 }
