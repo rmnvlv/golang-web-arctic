@@ -13,6 +13,7 @@ import (
 
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 const (
@@ -31,6 +32,7 @@ func registerNewParticipant(c *fiber.Ctx) error {
 		PresentationForm:    c.FormValue("presentation-form"),
 		PresentationSection: c.FormValue("presentation-section"),
 		PresentationTitle:   c.FormValue("presentation-title"),
+		Code:                "",
 	}
 
 	hCaptcha := c.FormValue("h-captcha-response")
@@ -74,6 +76,9 @@ func registerNewParticipant(c *fiber.Ctx) error {
 
 	data := fiber.Map{}
 	messages := make(map[string]string)
+
+	Uuid := uuid.New()
+	participant.Code = Uuid.String()
 
 	if len(formErrors) > 0 {
 		messages["Error"] = ErrorMessage
@@ -126,6 +131,7 @@ func downloadFile(c *fiber.Ctx) error {
 		"Presentation Form",
 		"Presentation Section",
 		"Presentation Title",
+		"Code",
 	}
 
 	if err := writer.Write(headers); err != nil {
@@ -143,6 +149,7 @@ func downloadFile(c *fiber.Ctx) error {
 			participan.PresentationForm,
 			participan.PresentationSection,
 			participan.PresentationTitle,
+			participan.Code,
 		}
 		if err := writer.Write(row); err != nil {
 			panic(err)
@@ -164,8 +171,9 @@ func downloadFile(c *fiber.Ctx) error {
 	fileExcel.SetCellValue("Sheet1", "G1", "PresentationForm")
 	fileExcel.SetCellValue("Sheet1", "H1", "PresentationSection")
 	fileExcel.SetCellValue("Sheet1", "I1", "PresentationTitle")
+	fileExcel.SetCellValue("Sheet1", "J1", "Unique code")
 
-	// "ABCDEFGHI"
+	// "ABCDEFGHIJ"
 	for counter, participan := range participants {
 		number := strconv.Itoa(counter + 2)
 		fileExcel.SetCellValue("Sheet1", "A"+number, participan.Name)
@@ -177,6 +185,7 @@ func downloadFile(c *fiber.Ctx) error {
 		fileExcel.SetCellValue("Sheet1", "G"+number, participan.PresentationForm)
 		fileExcel.SetCellValue("Sheet1", "H"+number, participan.PresentationSection)
 		fileExcel.SetCellValue("Sheet1", "I"+number, participan.PresentationTitle)
+		fileExcel.SetCellValue("Sheet1", "J"+number, participan.Code)
 	}
 
 	fileNameExcel := strconv.FormatInt(time.Now().Unix(), 10) + ".xlsx" //  "./" +

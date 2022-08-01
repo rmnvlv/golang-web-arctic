@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 
 	"gopkg.in/gomail.v2"
@@ -10,10 +9,10 @@ import (
 
 var (
 	auth = AuthInfo{
-		Username: os.Getenv("SMTP_USER"),
-		Password: os.Getenv("SMTP_PASSWORD"),
-		Host:     os.Getenv("SMTP_HOST"),
-		Port:     os.Getenv("SMTP_PORT"),
+		Username: "rvqLow9eQcEoUD@yandex.ru", /*os.Getenv("SMTP_USER"), */
+		Password: "dymicukadgovyims",         /*os.Getenv("SMTP_PASSWORD"),*/
+		Host:     "smtp.yandex.ru",           /*os.Getenv("SMTP_HOST"),*/
+		Port:     "25",                       /*os.Getenv("SMTP_PORT"),*/
 	}
 )
 

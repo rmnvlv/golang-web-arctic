@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/basicauth"
@@ -15,7 +14,7 @@ import (
 
 var (
 	DB    *gorm.DB
-	DBURL = os.Getenv("DATABASE_URL")
+	DBURL = "test.db" /*os.Getenv("DATABASE_URL")*/
 )
 
 func main() {
@@ -53,7 +52,7 @@ func main() {
 	app.Post("/registration-and-submission", registerNewParticipant)
 	admin := app.Group("/admin", basicauth.New(basicauth.Config{
 		Users: map[string]string{
-			"admin": os.Getenv("ADMIN_PASSWORD"),
+			"admin": "123456", /*os.Getenv("ADMIN_PASSWORD")*/
 		},
 	}))
 	admin.Get("/", adminView)
@@ -62,5 +61,5 @@ func main() {
 	app.Post("/upload", uploadArticleOrTezisi)
 	app.Use(notFoundView)
 
-	log.Fatal(app.Listen(":" + os.Getenv("PORT")))
+	log.Fatal(app.Listen(":" + "8080" /*os.Getenv("PORT")*/))
 }
