@@ -22,6 +22,7 @@ type Participant struct {
 	PresentationSection string
 
 	PresentationTitle string
+	Attempts          int
 }
 
 type LoadedFile struct {

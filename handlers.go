@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
+	emailverifier "github.com/AfterShip/email-verifier"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
@@ -20,6 +21,8 @@ const (
 	ErrorMessage   = "Some form fields are entered incorrectly. Please change them."
 	SuccessMessage = "Thank you for registration for AMTC 2022!"
 )
+
+var mailQueue []Participant = nil
 
 func registerNewParticipant(c *fiber.Ctx) error {
 	participant := Participant{
@@ -33,6 +36,7 @@ func registerNewParticipant(c *fiber.Ctx) error {
 		PresentationSection: c.FormValue("presentation-section"),
 		PresentationTitle:   c.FormValue("presentation-title"),
 		Code:                "",
+		Attempts:            3,
 	}
 
 	hCaptcha := c.FormValue("h-captcha-response")
@@ -73,6 +77,10 @@ func registerNewParticipant(c *fiber.Ctx) error {
 	// if err != nil || !val {
 	// 	formErrors["Email"] = "Wrong email format. Example: mail@example.com"
 	// }
+	verifier := emailverifier.NewVerifier()
+	if _, err = verifier.Verify(participant.Email); err != nil {
+		formErrors["Email"] = "Email does not exists."
+	}
 
 	data := fiber.Map{}
 	messages := make(map[string]string)
@@ -89,9 +97,11 @@ func registerNewParticipant(c *fiber.Ctx) error {
 		// 	fmt.Println(err)
 		// }
 
-		ch := make(chan Participant, 1)
+		mailQueue = append(mailQueue, participant)
+
+		ch := make(chan []Participant, 1)
 		go worker(ch)
-		ch <- participant
+		ch <- mailQueue
 		close(ch)
 
 		DB.Create(&participant)
@@ -299,13 +309,22 @@ func notFoundView(c *fiber.Ctx) error {
 	return c.Render("basic", data)
 }
 
-func worker(ch <-chan Participant) {
+func worker(ch <-chan []Participant) {
 	//participan := Participant{}
-	participan := <-ch
-	go func() {
-		err := SendMail(To{participan.Name, participan.Email})
-		if err != nil {
-			log.Fatal(err)
+	mailQueue := <-ch
+	for len(mailQueue) > 0 {
+		participan := mailQueue[0]
+		if len(mailQueue) < 2 {
+			mailQueue = nil
+		} else {
+			mailQueue = mailQueue[1:]
 		}
-	}()
+		go func() {
+			err := SendMail(To{participan.Name, participan.Email})
+			if err != nil && participan.Attempts > 0 {
+				participan.Attempts--
+				mailQueue = append(mailQueue, participan)
+			}
+		}()
+	}
 }
