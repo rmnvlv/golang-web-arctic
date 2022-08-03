@@ -209,13 +209,13 @@ func downloadFile(c *fiber.Ctx) error {
 
 func updateMailing(c *fiber.Ctx) error {
 	//Validate
-	// day := c.FormValue("day")
-	// month := c.FormValue("month")
-	// //Return error if error
-	// Ch := make(chan string)
-	// Ch <- month + "-" + day
-	// Timer(Ch)
-	// close(Ch)
+	day := c.FormValue("day")
+	month := c.FormValue("month")
+	//Return error if error
+	Ch := make(chan string)
+	Ch <- month + "-" + day
+	Timer(Ch)
+	close(Ch)
 	return nil
 }
 

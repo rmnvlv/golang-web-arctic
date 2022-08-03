@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/basicauth"
@@ -38,10 +39,10 @@ func main() {
 	})
 
 	//Bomb has been planted
-	// Ch := make(chan string)
-	// Timer(Ch)
-	// Ch <- "00-00"
-	// close(Ch)
+	Ch := make(chan string)
+	go Timer(Ch)
+	Ch <- "00-00"
+	close(Ch)
 
 	app.Use(logger.New())
 	app.Static("/a", "./assets")
@@ -67,14 +68,14 @@ func main() {
 	log.Fatal(app.Listen(":" + "8080" /*os.Getenv("PORT")*/))
 }
 
-// func Timer(ch chan string) {
-// 	timeString := <-ch
-// 	dt := time.Now().Format("01-02-2006") //MM:DD:YY
-// 	if dt[:5] == timeString {
-// 		//send mailing
-// 	} else {
-// 		time.Sleep(24 * time.Hour)
-// 		go Timer(ch)
-// 		ch <- timeString
-// 	}
-// }
+func Timer(ch chan string) {
+	timeString := <-ch
+	dt := time.Now().Format("01-02-2006") //MM:DD:YY
+	if dt[:5] == timeString {
+		//send mailing
+	} else {
+		time.Sleep(24 * time.Hour)
+		go Timer(ch)
+		ch <- timeString
+	}
+}
