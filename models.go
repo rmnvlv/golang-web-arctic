@@ -24,10 +24,3 @@ type Participant struct {
 	PresentationTitle string
 	Attempts          int
 }
-
-type LoadedFile struct {
-	gorm.Model
-	Id       int `gorm:"primaryKey"`
-	File     string
-	FileName string
-}

@@ -207,6 +207,18 @@ func downloadFile(c *fiber.Ctx) error {
 	return c.SendFile("./" + fileNameExcel)
 }
 
+func updateMailing(c *fiber.Ctx) error {
+	//Validate
+	// day := c.FormValue("day")
+	// month := c.FormValue("month")
+	// //Return error if error
+	// Ch := make(chan string)
+	// Ch <- month + "-" + day
+	// Timer(Ch)
+	// close(Ch)
+	return nil
+}
+
 func mainView(c *fiber.Ctx) error {
 	data := IndexPage
 	data["Links"] = Links
