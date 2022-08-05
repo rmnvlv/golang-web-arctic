@@ -1,81 +1,170 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log"
-	"time"
+	"os"
+	"os/signal"
+	"strconv"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/basicauth"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/template/html"
+	"gopkg.in/gomail.v2"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
-var (
-	DB    *gorm.DB
-	DBURL = "test.db" /*os.Getenv("DATABASE_URL")*/
-)
+type App struct {
+	server *fiber.App
+	db     *gorm.DB
+	mailer gomail.SendCloser
+	// logger *zap.SugaredLogger
+	// disk   *YandexDsik
+	// captcha *HCaptcha
+}
 
-func main() {
-	var err error
-	DB, err = gorm.Open(sqlite.Open(DBURL), &gorm.Config{})
+func NewApp() (*App, error) {
+	dbURL := os.Getenv("DATABASE_URL")
+
+	db, err := gorm.Open(sqlite.Open(dbURL), &gorm.Config{})
 	if err != nil {
-		fmt.Println("error: ", err)
-		panic("failed to connect database")
+		return nil, fmt.Errorf("can't open database")
 	}
 
-	if err := DB.AutoMigrate(&Participant{}); err != nil {
-		panic("failed to migrate database")
-
+	if err := db.AutoMigrate(&Participant{}); err != nil {
+		return nil, fmt.Errorf("can't apply migrations to database: %w", err)
 	}
 
-	engine := html.New("./views", ".html")
+	smtpPort, err := strconv.Atoi(os.Getenv("SMTP_PORT"))
+	if err != nil {
+		return nil, fmt.Errorf("can't convert an SMTP server port to int: %w", err)
+	}
+	smtpHost := os.Getenv("SMTP_HOST")
+	smtpUser := os.Getenv("SMTP_USER")
+	smtpPassword := os.Getenv("SMTP_PASSWORD")
 
-	app := fiber.New(fiber.Config{
-		Views:       engine,
+	m, err := gomail.NewDialer(smtpHost, smtpPort, smtpUser, smtpPassword).Dial()
+	if err != nil {
+		return nil, fmt.Errorf("can't authenticate to an SMTP server: %w", err)
+	}
+
+	server := fiber.New(fiber.Config{
+		Views:       html.New("./views", ".html"),
 		ViewsLayout: "main",
 	})
 
-	//Bomb has been planted
-	Ch := make(chan string)
-	go Timer(Ch)
-	Ch <- "00-00"
-	close(Ch)
+	app := App{db: db, mailer: m, server: server}
 
-	app.Use(logger.New())
-	app.Static("/a", "./assets")
-	app.Get("/", mainView)
-	app.Get("/programme-overview", programOverviewView)
-	app.Get("/keynote-speakers", keynoteSpeakersView)
-	app.Get("/requirements", requirementsView)
-	app.Get("/general-information", generalInfoView)
-	app.Get("/registration-and-submission", registrationView)
-	app.Post("/registration-and-submission", registerNewParticipant)
-	admin := app.Group("/admin", basicauth.New(basicauth.Config{
+	return &app, nil
+}
+
+func (a *App) Run() {
+	a.server.Listen(":" + os.Getenv("PORT"))
+}
+
+func (a *App) Shutdown(_ context.Context) error {
+	e := make([]string, 0)
+
+	if err := a.server.Shutdown(); err != nil {
+		e = append(e, fmt.Errorf("can't shutdown server: %w", err).Error())
+	}
+
+	db, err := a.db.DB()
+	if err != nil {
+		e = append(e, fmt.Errorf("can't receive an underling sql.DB instance: %w", err).Error())
+	}
+
+	if err := db.Close(); err != nil {
+		e = append(e, fmt.Errorf("can't close database connection: %w", err).Error())
+	}
+
+	if err := a.mailer.Close(); err != nil {
+		e = append(e, fmt.Errorf("can't close connection to an SMTP server").Error())
+	}
+
+	if len(e) > 0 {
+		return errors.New(strings.Join(e, "/n"))
+	}
+
+	return nil
+}
+
+func (a *App) Init() {
+	s := a.server
+
+	s.Use(logger.New())
+
+	s.Static("/a", "./assets")
+
+	s.Get("/", a.mainView)
+	s.Get("/programme-overview", a.programOverviewView)
+	s.Get("/keynote-speakers", a.keynoteSpeakersView)
+	s.Get("/requirements", a.requirementsView)
+	s.Get("/general-information", a.generalInfoView)
+	s.Get("/registration-and-submission", a.registrationView)
+	s.Post("/registration-and-submission", a.registerNewParticipant)
+	s.Get("/upload", a.uploadView)
+	s.Post("/upload", a.uploadArticleOrTezisi)
+
+	admin := s.Group("/admin", basicauth.New(basicauth.Config{
 		Users: map[string]string{
-			"admin": "123456", /*os.Getenv("ADMIN_PASSWORD")*/
+			"admin": os.Getenv("ADMIN_PASSWORD"),
 		},
 	}))
-	admin.Get("/", adminView)
-	admin.Get("/file", downloadFile)
-	admin.Get("/update-mailing", updateMailing)
-	app.Get("/upload", uploadView)
-	app.Post("/upload", uploadArticleOrTezisi)
-	app.Use(notFoundView)
+	admin.Get("/", a.adminView)
+	admin.Get("/file", a.downloadFile)
+	// admin.Get("/update-mailing", a.updateMailing)
 
-	log.Fatal(app.Listen(":" + "8080" /*os.Getenv("PORT")*/))
+	s.Use(a.notFoundView)
 }
 
-func Timer(ch chan string) {
-	timeString := <-ch
-	dt := time.Now().Format("01-02-2006") //MM:DD:YY
-	if dt[:5] == timeString {
-		//send mailing
-	} else {
-		time.Sleep(24 * time.Hour)
-		go Timer(ch)
-		ch <- timeString
+func main() {
+	app, err := NewApp()
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	app.Init()
+
+	stop := make(chan os.Signal, 1)
+
+	signal.Notify(stop, os.Interrupt)
+
+	// Todo: wait for gorutine to see the output
+	go func() {
+		<-stop
+
+		log.Println("Received an interrupt signal, shutdown")
+
+		// ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		// defer cancel()
+
+		if err := app.Shutdown(context.TODO()); err != nil {
+			// Do recovery???
+			// app.logger.Errorf("Server shutdown failed: %w", err)
+			log.Printf("Server shutdown failed: %v", err)
+		}
+
+		log.Println("Seccessfully shutdowned")
+
+	}()
+
+	app.Run()
 }
+
+// func Timer(ch chan string) {
+// 	timeString := <-ch
+// 	dt := time.Now().Format("01-02-2006") //MM:DD:YY
+// 	if dt[:5] == timeString {
+// 		//send mailing
+// 	} else {
+// 		time.Sleep(24 * time.Hour)
+// 		go Timer(ch)
+// 		ch <- timeString
+// 	}
+// }

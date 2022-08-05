@@ -2,27 +2,18 @@ package main
 
 import (
 	"fmt"
-	"strconv"
+	"os"
 
 	"gopkg.in/gomail.v2"
 )
 
-var (
-	auth = AuthInfo{
-		Username: "rvqLow9eQcEoUD@yandex.ru", /*os.Getenv("SMTP_USER"), */
-		Password: "dymicukadgovyims",         /*os.Getenv("SMTP_PASSWORD"),*/
-		Host:     "smtp.yandex.ru",           /*os.Getenv("SMTP_HOST"),*/
-		Port:     "25",                       /*os.Getenv("SMTP_PORT"),*/
-	}
-)
-
 const (
-	subject = "Thank you for registration for AMTC 2022"
-	message = `
+	EmailSubject  = "Thank you for registration for AMTC 2022"
+	EmailTemplate = `
 		<html>
 		<body>
-		<h3>Dear %s, Thank you for taking part in AMTC 2022!</h3>
-		<a href="#">Link to site</a>
+		<h3>%s, Thank you for taking part in AMTC 2022!</h3>
+		<a href="%s"></a>
 		</body>
 		</html>
 	`
@@ -33,22 +24,21 @@ type To struct {
 	Email string
 }
 
-type AuthInfo struct {
-	Username string `mapstructure:"SMTP_USER"`
-	Password string `mapstructure:"SMTP_PASSWORD"`
-	Host     string `mapstructure:"SMTP_HOST"`
-	Port     string `mapstructure:"SMTP_PORT"`
+type Message struct {
+	Subject string
+	Text    string
 }
 
-func SendMail(to To) error {
+func (a *App) sendEmail(to To, message Message) error {
 	email := gomail.NewMessage(gomail.SetCharset("UTF-8"), gomail.SetEncoding(gomail.Base64))
-	email.SetAddressHeader("From", auth.Username, "AMTC 2022")
+	email.SetAddressHeader("From", "amtc@gumrf.ru", "AMTC 2022")
 	email.SetAddressHeader("To", to.Email, to.Name)
-	email.SetHeader("Subject", subject)
-	email.SetBody("text/html", fmt.Sprintf(message, to.Name))
+	email.SetHeader("Subject", message.Subject)
+	email.SetBody("text/html", fmt.Sprintf(message.Text, to.Name, "link"))
 
-	port, _ := strconv.Atoi(auth.Port)
-	dialer := gomail.NewDialer(auth.Host, port, auth.Username, auth.Password)
+	return a.mailer.Send(os.Getenv("SMTP_USER") /*bad things can happen in here*/, []string{to.Email}, email)
+}
 
-	return dialer.DialAndSend(email)
+func (a *App) sendNewsletter(mailList []To, message Message) error {
+	panic("not implemented")
 }

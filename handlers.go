@@ -9,6 +9,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
@@ -22,9 +23,9 @@ const (
 	SuccessMessage = "Thank you for registration for AMTC 2022!"
 )
 
-var mailQueue []Participant = nil
+// var mailQueue []Participant = nil
 
-func registerNewParticipant(c *fiber.Ctx) error {
+func (a *App) registerNewParticipant(c *fiber.Ctx) error {
 	participant := Participant{
 		Surname:             c.FormValue("surname"),
 		Name:                c.FormValue("name"),
@@ -39,19 +40,21 @@ func registerNewParticipant(c *fiber.Ctx) error {
 		Attempts:            3,
 	}
 
-	hCaptcha := c.FormValue("h-captcha-response")
-
 	formErrors := make(map[string]string)
 
-	if ok, err := verifyCaptcha(hCaptcha); !ok {
-		if errors.Is(err, ErrCaptchaEmpty) {
-			formErrors["Captcha"] = "Сaptcha is not passed"
-			// formError.Captcha = "Сaptcha is not passed"
-		} else {
-			// formError.Captcha = "Please try again"
-			formErrors["Captcha"] = "Please try again"
+	if os.Getenv("APP_ENV") == "prod" {
+		hCaptcha := c.FormValue("h-captcha-response")
+
+		if ok, err := verifyCaptcha(hCaptcha); !ok {
+			if errors.Is(err, ErrCaptchaEmpty) {
+				formErrors["Captcha"] = "Сaptcha is not passed"
+				// formError.Captcha = "Сaptcha is not passed"
+			} else {
+				// formError.Captcha = "Please try again"
+				formErrors["Captcha"] = "Please try again"
+			}
+			log.Println(err)
 		}
-		log.Println(err)
 	}
 
 	// Validate phone
@@ -85,26 +88,29 @@ func registerNewParticipant(c *fiber.Ctx) error {
 	data := fiber.Map{}
 	messages := make(map[string]string)
 
-	Uuid := uuid.New()
-	participant.Code = Uuid.String()
+	participant.Code = uuid.New().String()
 
 	if len(formErrors) > 0 {
 		messages["Error"] = ErrorMessage
 		data["Values"] = participant
 	} else {
-		// err = sendEmail(participant.Email)
-		// if err != nil {
-		// 	fmt.Println(err)
-		// }
+		a.db.Create(&participant)
 
-		mailQueue = append(mailQueue, participant)
+		if err := a.sendEmail(
+			To{strings.Join([]string{participant.Name, participant.Surname}, " "), participant.Email},
+			Message{EmailSubject, EmailTemplate},
+		); err != nil {
+			// log
+			fmt.Println(err)
+		}
 
-		ch := make(chan []Participant, 1)
-		go worker(ch)
-		ch <- mailQueue
-		close(ch)
+		// mailQueue = append(mailQueue, participant)
 
-		DB.Create(&participant)
+		// ch := make(chan []Participant, 1)
+		// go worker(ch)
+		// ch <- mailQueue
+		// close(ch)
+
 		messages["Success"] = SuccessMessage
 
 	}
@@ -117,10 +123,10 @@ func registerNewParticipant(c *fiber.Ctx) error {
 	return c.Render("registration", data)
 }
 
-func downloadFile(c *fiber.Ctx) error {
+func (a *App) downloadFile(c *fiber.Ctx) error {
 	var participants []Participant
 
-	DB.Find(&participants)
+	a.db.Find(&participants)
 
 	fileName := "./" + strconv.FormatInt(time.Now().Unix(), 10) + ".xlsx"
 	file, err := os.Create(fileName)
@@ -207,33 +213,33 @@ func downloadFile(c *fiber.Ctx) error {
 	return c.SendFile("./" + fileNameExcel)
 }
 
-func updateMailing(c *fiber.Ctx) error {
-	//Validate
-	day := c.FormValue("day")
-	month := c.FormValue("month")
-	//Return error if error
-	Ch := make(chan string)
-	Ch <- month + "-" + day
-	Timer(Ch)
-	close(Ch)
-	return nil
-}
+// func updateMailing(c *fiber.Ctx) error {
+// 	//Validate
+// 	day := c.FormValue("day")
+// 	month := c.FormValue("month")
+// 	//Return error if error
+// 	Ch := make(chan string)
+// 	Ch <- month + "-" + day
+// 	Timer(Ch)
+// 	close(Ch)
+// 	return nil
+// }
 
-func mainView(c *fiber.Ctx) error {
+func (a *App) mainView(c *fiber.Ctx) error {
 	data := IndexPage
 	data["Links"] = Links
 	data["Header"] = true
 	return c.Render("index", data)
 }
 
-func programOverviewView(c *fiber.Ctx) error {
+func (a *App) programOverviewView(c *fiber.Ctx) error {
 	data := fiber.Map{}
 	data["Links"] = Links
 	data["Title"] = "Programme Overview"
 	return c.Render("programm-overview", data)
 }
 
-func keynoteSpeakersView(c *fiber.Ctx) error {
+func (a *App) keynoteSpeakersView(c *fiber.Ctx) error {
 	data := fiber.Map{}
 	data["Title"] = "Keynote Speakers"
 	data["Links"] = Links
@@ -241,7 +247,7 @@ func keynoteSpeakersView(c *fiber.Ctx) error {
 	return c.Render("basic", data)
 }
 
-func requirementsView(c *fiber.Ctx) error {
+func (a *App) requirementsView(c *fiber.Ctx) error {
 	data := fiber.Map{}
 	data["Title"] = "Requirements"
 	data["Links"] = Links
@@ -249,20 +255,20 @@ func requirementsView(c *fiber.Ctx) error {
 	return c.Render("basic", data)
 }
 
-func generalInfoView(c *fiber.Ctx) error {
+func (a *App) generalInfoView(c *fiber.Ctx) error {
 	data := fiber.Map{}
 	data["Links"] = Links
 	return c.Render("general-information", data)
 }
 
-func registrationView(c *fiber.Ctx) error {
+func (a *App) registrationView(c *fiber.Ctx) error {
 	data := fiber.Map{}
 	data["Title"] = "Registration and submission"
 	data["Links"] = Links
 	return c.Render("registration", data)
 }
 
-func adminView(c *fiber.Ctx) error {
+func (a *App) adminView(c *fiber.Ctx) error {
 	data := fiber.Map{}
 	data["Title"] = "Admin"
 	data["Links"] = Links
@@ -270,7 +276,7 @@ func adminView(c *fiber.Ctx) error {
 	return c.Render("admin", data)
 }
 
-func uploadView(c *fiber.Ctx) error {
+func (a *App) uploadView(c *fiber.Ctx) error {
 	code := c.Query("code")
 	fmt.Println(code)
 
@@ -278,19 +284,20 @@ func uploadView(c *fiber.Ctx) error {
 		return c.Redirect("not-found")
 	}
 
-	// DB.First()
+	var person Participant
+	result := a.db.First(&person, "code = ?", code)
+
+	if result.Error != nil {
+		log.Fatal(result.Error)
+	}
 
 	data := fiber.Map{}
 	data["Title"] = "Upload"
-	data["User"] = fiber.Map{
-		"Name":    "Max",
-		"Surname": "max",
-		"Email":   "max@mal.com",
-	}
+	data["User"] = person
 	return c.Render("upload", data)
 }
 
-func uploadArticleOrTezisi(c *fiber.Ctx) error {
+func (a *App) uploadArticleOrTezisi(c *fiber.Ctx) error {
 	article, err := c.FormFile("article")
 	if err != nil {
 		return err
@@ -313,7 +320,7 @@ func uploadArticleOrTezisi(c *fiber.Ctx) error {
 	return c.Render("upload", fiber.Map{})
 }
 
-func notFoundView(c *fiber.Ctx) error {
+func (a *App) notFoundView(c *fiber.Ctx) error {
 	data := fiber.Map{}
 	data["Title"] = "Page Not Found"
 	data["Links"] = Links
@@ -321,22 +328,22 @@ func notFoundView(c *fiber.Ctx) error {
 	return c.Render("basic", data)
 }
 
-func worker(ch <-chan []Participant) {
-	//participan := Participant{}
-	mailQueue := <-ch
-	for len(mailQueue) > 0 {
-		participan := mailQueue[0]
-		if len(mailQueue) < 2 {
-			mailQueue = nil
-		} else {
-			mailQueue = mailQueue[1:]
-		}
-		go func() {
-			err := SendMail(To{participan.Name, participan.Email})
-			if err != nil && participan.Attempts > 0 {
-				participan.Attempts--
-				mailQueue = append(mailQueue, participan)
-			}
-		}()
-	}
-}
+// func worker(ch <-chan []Participant) {
+// 	//participan := Participant{}
+// 	mailQueue := <-ch
+// 	for len(mailQueue) > 0 {
+// 		participan := mailQueue[0]
+// 		if len(mailQueue) < 2 {
+// 			mailQueue = nil
+// 		} else {
+// 			mailQueue = mailQueue[1:]
+// 		}
+// 		go func() {
+// 			err := SendMail(To{participan.Name, participan.Email}, Message{EmailSubject, EmailTemplate})
+// 			if err != nil && participan.Attempts > 0 {
+// 				participan.Attempts--
+// 				mailQueue = append(mailQueue, participan)
+// 			}
+// 		}()
+// 	}
+// }
