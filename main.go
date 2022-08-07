@@ -32,6 +32,12 @@ type App struct {
 func NewApp() (*App, error) {
 	dbURL := os.Getenv("DATABASE_URL")
 
+	// TODO: .env DB_URL="/name" + pull docker with my sql
+	// db, err := gorm.Open(mysql.Open(dbURL), &gorm.Config{})
+	// if err != nil {
+	// 	return nil, fmt.Errorf("can't open database: %w", err)
+	// }
+
 	db, err := gorm.Open(sqlite.Open(dbURL), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("can't open database")

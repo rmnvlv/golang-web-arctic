@@ -98,7 +98,7 @@ func (a *App) registerNewParticipant(c *fiber.Ctx) error {
 
 		if err := a.sendEmail(
 			To{strings.Join([]string{participant.Name, participant.Surname}, " "), participant.Email},
-			Message{EmailSubject, EmailRegistrationTemplate},
+			Message{EmailSubject, EmailAbstractsArticleTemplate},
 		); err != nil {
 			// log
 			fmt.Println(err)
@@ -316,11 +316,11 @@ func (a *App) mailing(c *fiber.Ctx) error {
 	a.db.Find(&participants)
 	for _, participant := range participants {
 		if participant.PresentationForm == "Speaker" || participant.PresentationForm == "Publication" {
-			//worker <-- chanel <-- participants ?
+			// TODO: worker <-- chanel <-- participants ?
 			break
 		}
 	}
-	return nil
+	return errors.New("not implemented")
 }
 
 func (a *App) notFoundView(c *fiber.Ctx) error {

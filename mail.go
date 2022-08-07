@@ -26,14 +26,13 @@ const (
 	<h3>You received this email because you are registered for the International Conference 
 	«Arctic: Marine Transportation Challenges – 2022», which will take place on November 24-25, 2022.
 	Acceptance of full paper and abstracts is open. The full paper and abstracts template is available on the website page.</h3>
-	<h2>Abstract upload form at the link.</h2>
-	<h2>The form for adding full paper is available at the link.</h2><a href="%s"></a>
-	<h3>If you have any questions, please contact by amtc@gumrf.ru.</h3><a href="%s"></a>
-	<a href="%s"></a>
-	<h4>Best Regards,</h4>
-	<h4>Organizing committee AMTC-2022</h4>
+	<h2>Abstract upload form at the link.<a href="%s"></a></h2>
+	<h2>The form for adding full paper is available at the link.<a href="%s"></a></h2>
+	<h3>If you have any questions, please contact by amtc@gumrf.ru.<a href="%s"></a></h3>
+	<h4>Best Regards,
+	Organizing committee AMTC-2022</h4>
 	</body>
-	</html>>`
+	</html>`
 
 	EmailMailingArticleTemplate = `
 	<html>
@@ -70,7 +69,7 @@ type Message struct {
 
 func (a *App) sendEmail(to To, message Message) error {
 	email := gomail.NewMessage(gomail.SetCharset("UTF-8"), gomail.SetEncoding(gomail.Base64))
-	email.SetAddressHeader("From", "amtc@gumrf.ru", "AMTC 2022")
+	email.SetAddressHeader("From", "Mailcumgum@yandex.ru", "AMTC 2022")
 	email.SetAddressHeader("To", to.Email, to.Name)
 	email.SetHeader("Subject", message.Subject)
 	email.SetBody("text/html", fmt.Sprintf(message.Text, to.Name, "link"))
