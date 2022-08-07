@@ -14,6 +14,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/basicauth"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/template/html"
+	"github.com/joho/godotenv"
 	"gopkg.in/gomail.v2"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -118,9 +119,15 @@ func (a *App) Init() {
 	}))
 	admin.Get("/", a.adminView)
 	admin.Get("/file", a.downloadFile)
-	// admin.Get("/update-mailing", a.updateMailing)
+	admin.Post("/mailing", a.mailing)
 
 	s.Use(a.notFoundView)
+}
+
+func init() {
+	if err := godotenv.Load(); err != nil {
+		log.Printf("Err with load env %s", err)
+	}
 }
 
 func main() {
@@ -156,15 +163,3 @@ func main() {
 
 	app.Run()
 }
-
-// func Timer(ch chan string) {
-// 	timeString := <-ch
-// 	dt := time.Now().Format("01-02-2006") //MM:DD:YY
-// 	if dt[:5] == timeString {
-// 		//send mailing
-// 	} else {
-// 		time.Sleep(24 * time.Hour)
-// 		go Timer(ch)
-// 		ch <- timeString
-// 	}
-// }

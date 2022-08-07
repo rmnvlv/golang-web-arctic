@@ -98,7 +98,7 @@ func (a *App) registerNewParticipant(c *fiber.Ctx) error {
 
 		if err := a.sendEmail(
 			To{strings.Join([]string{participant.Name, participant.Surname}, " "), participant.Email},
-			Message{EmailSubject, EmailTemplate},
+			Message{EmailSubject, EmailRegistrationTemplate},
 		); err != nil {
 			// log
 			fmt.Println(err)
@@ -213,18 +213,6 @@ func (a *App) downloadFile(c *fiber.Ctx) error {
 	return c.SendFile("./" + fileNameExcel)
 }
 
-// func updateMailing(c *fiber.Ctx) error {
-// 	//Validate
-// 	day := c.FormValue("day")
-// 	month := c.FormValue("month")
-// 	//Return error if error
-// 	Ch := make(chan string)
-// 	Ch <- month + "-" + day
-// 	Timer(Ch)
-// 	close(Ch)
-// 	return nil
-// }
-
 func (a *App) mainView(c *fiber.Ctx) error {
 	data := IndexPage
 	data["Links"] = Links
@@ -269,7 +257,10 @@ func (a *App) registrationView(c *fiber.Ctx) error {
 }
 
 func (a *App) adminView(c *fiber.Ctx) error {
+	var participants []Participant
+	a.db.Find(&participants)
 	data := fiber.Map{}
+	data["Users"] = participants
 	data["Title"] = "Admin"
 	data["Links"] = Links
 	data["Content"] = "Admin panel"
@@ -318,6 +309,18 @@ func (a *App) uploadArticleOrTezisi(c *fiber.Ctx) error {
 	// disable upload files
 
 	return c.Render("upload", fiber.Map{})
+}
+
+func (a *App) mailing(c *fiber.Ctx) error {
+	var participants []Participant
+	a.db.Find(&participants)
+	for _, participant := range participants {
+		if participant.PresentationForm == "Speaker" || participant.PresentationForm == "Publication" {
+			//worker <-- chanel <-- participants ?
+			break
+		}
+	}
+	return nil
 }
 
 func (a *App) notFoundView(c *fiber.Ctx) error {
