@@ -267,22 +267,43 @@ func (a *App) adminView(c *fiber.Ctx) error {
 	return c.Render("admin", data)
 }
 
+var form = fiber.Map{
+	"t": fiber.Map{
+		"label": "Upload Abstracts",
+		"id":    "abstracts",
+	},
+	"a": fiber.Map{
+		"label": "Upload Full paper",
+		"id":    "article",
+	},
+}
+
 func (a *App) uploadArticlesView(c *fiber.Ctx) error {
 	code := c.Query("code")
-	fmt.Println(code)
+	log.Println(code)
 
-	if code == "" {
+	t := c.Query("type")
+	log.Println(t)
+
+	if code == "" || t == "" {
+		log.Println("Empty params. Redirect not found")
+		return c.Redirect("not-found")
+	}
+
+	if t != "a" && t != "t" {
+		log.Println("Invalid type params")
 		return c.Redirect("not-found")
 	}
 
 	var person Participant
 	result := a.db.First(&person, "code = ?", code)
-
 	if result.Error != nil {
-		log.Fatal(result.Error)
+		log.Println(result.Error)
+		return c.Redirect("not-found")
 	}
 
 	data := fiber.Map{}
+
 	data["Title"] = "Upload"
 	data["User"] = person
 	return c.Render("uploadArticles", data)

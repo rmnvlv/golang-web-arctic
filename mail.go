@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"gopkg.in/gomail.v2"
@@ -88,7 +87,7 @@ func (a *App) sendEmail(to To, message Message) error {
 	email.SetAddressHeader("From", "Germproof0825AMTC@yandex.ru", "AMTC 2022")
 	email.SetAddressHeader("To", to.Email, to.Name)
 	email.SetHeader("Subject", message.Subject)
-	email.SetBody("text/html", fmt.Sprintf(message.Text, to.Name, "link"))
+	email.SetBody("text/html", message.Text)
 
 	return a.mailer.Send(os.Getenv("SMTP_USER") /*bad things can happen in here*/, []string{to.Email}, email)
 }
