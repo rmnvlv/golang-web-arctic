@@ -1,6 +1,6 @@
 <div class="px-4 mx-auto max-w-screen-xl">
   <div class="mx-auto mt-10">
-    <form action="/upload" method="POST" enctype="multipart/form-data">
+    <form action="/uploadArticles" method="POST" enctype="multipart/form-data">
       <div class="shadow overflow-hidden sm:rounded-md">
         <div class=" px-4 pt-5 bg-white text-sky-900 tracking-wide sm:p-6 min-h-max w-full">
 
@@ -18,16 +18,6 @@
             <p class="font-medium">Email</p>
             <p class="text-gray-500">{{.User.Email}}</p>
           </div>
-
-          <div class="flex flex-col items-start">
-            <label for="abstracts" class="pt-2 font-medium">Upload Abstracts</label>
-            <div class="py-4 text-sm text-gray-500">
-              <input type="file" id="abstracts" name="abstracts" accept="application/pdf, application/msword"
-                class="focus:ring-sky-500 border-gray-300 rounded">
-              <p class="pt-2">*The file size is limited to 5 MB. Abstracts are accepted until July 15, 2022.</p>
-            </div>
-          </div>
-
           <div class="flex flex-col items-start ">
             <label for="article" class="pt-2 font-medium">Upload Article</label>
             <div class="py-4 text-sm text-gray-500">

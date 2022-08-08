@@ -98,7 +98,7 @@ func (a *App) registerNewParticipant(c *fiber.Ctx) error {
 
 		if err := a.sendEmail(
 			To{strings.Join([]string{participant.Name, participant.Surname}, " "), participant.Email},
-			Message{EmailSubject, EmailAbstractsArticleTemplate},
+			Message{EmailSubject, EmailAbstractsTemplate},
 		); err != nil {
 			// log
 			fmt.Println(err)
@@ -267,7 +267,7 @@ func (a *App) adminView(c *fiber.Ctx) error {
 	return c.Render("admin", data)
 }
 
-func (a *App) uploadView(c *fiber.Ctx) error {
+func (a *App) uploadArticlesView(c *fiber.Ctx) error {
 	code := c.Query("code")
 	fmt.Println(code)
 
@@ -285,10 +285,31 @@ func (a *App) uploadView(c *fiber.Ctx) error {
 	data := fiber.Map{}
 	data["Title"] = "Upload"
 	data["User"] = person
-	return c.Render("upload", data)
+	return c.Render("uploadArticles", data)
 }
 
-func (a *App) uploadArticleOrTezisi(c *fiber.Ctx) error {
+func (a *App) uploadAbstractsView(c *fiber.Ctx) error {
+	code := c.Query("code")
+	fmt.Println(code)
+
+	if code == "" {
+		return c.Redirect("not-found")
+	}
+
+	var person Participant
+	result := a.db.First(&person, "code = ?", code)
+
+	if result.Error != nil {
+		log.Fatal(result.Error)
+	}
+
+	data := fiber.Map{}
+	data["Title"] = "Upload"
+	data["User"] = person
+	return c.Render("uploadAbstracts", data)
+}
+
+func (a *App) uploadArticles(c *fiber.Ctx) error {
 	article, err := c.FormFile("article")
 	if err != nil {
 		return err
@@ -301,25 +322,54 @@ func (a *App) uploadArticleOrTezisi(c *fiber.Ctx) error {
 
 	defer articleFile.Close()
 
-	if err := saveToYandexDisk(articleFile, "Test/"+article.Filename); err != nil {
+	if err := saveToYandexDisk(articleFile, "Articles/"+article.Filename); err != nil {
 		log.Default().Panicln(err)
 		return err
 	}
 
 	// disable upload files
 
-	return c.Render("upload", fiber.Map{})
+	return c.Render("uploadArticles", fiber.Map{})
 }
 
-func (a *App) mailing(c *fiber.Ctx) error {
+func (a *App) uploadAbstracts(c *fiber.Ctx) error {
+	abstracts, err := c.FormFile("abstracts")
+	if err != nil {
+		return err
+	}
+
+	abstractsFile, err := abstracts.Open()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer abstractsFile.Close()
+
+	if err := saveToYandexDisk(abstractsFile, "Abstracts/"+abstracts.Filename); err != nil {
+		log.Default().Panicln(err)
+		return err
+	}
+
+	// disable upload files
+
+	return c.Render("uploadAbstracts", fiber.Map{})
+}
+
+func (a *App) sendArticles(c *fiber.Ctx) error {
 	var participants []Participant
 	a.db.Find(&participants)
-	for _, participant := range participants {
-		if participant.PresentationForm == "Speaker" || participant.PresentationForm == "Publication" {
-			// TODO: worker <-- chanel <-- participants ?
-			break
-		}
-	}
+
+	// TODO: worker <-- chanel <-- participants ?
+
+	return errors.New("not implemented")
+}
+
+func (a *App) sendAbstracts(c *fiber.Ctx) error {
+	var participants []Participant
+	a.db.Find(&participants)
+
+	// TODO: worker <-- chanel <-- participants ?
+
 	return errors.New("not implemented")
 }
 

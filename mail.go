@@ -13,22 +13,37 @@ const (
 		<html>
 		<body>
 		<h3>%s, Thank you for registering at the International Conference «Arctic: Marine Transportation Challenges – 2022» on November 24-25, 2022. </h3>
-		<h3>You can find up-to-date information about the key dates of the Conference here.</h3>
-		<h3>If you have any questions, please contact by amtc@gumrf.ru.</h3>
+		<h3>You can find up-to-date information about the key dates of the Conference <a href="%s/programme-overview">here</a>.</h3>
+		<h3>If you have any questions, please contact by <a href="mailto:amtc@gumrf.ru">amtc@gumrf.ru</a>.</h3>
 		<a href="%s"></a>
 		</body>
 		</html>
 	`
-	EmailAbstractsArticleTemplate = `
+	EmailAbstractsTemplate = `
+	<<html>
+	<body>
+	<h3>Dear %s, </h3>
+	<h3>You received this email because you are 
+	registered for the International Conference «Arctic: Marine Transportation Challenges – 2022», 
+	which will take place on November 24-25, 2022.</h3>
+	<h2>Acceptance of abstracts is open. The abstracts template is available on the website page</h2>
+	<h2>Abstract upload form at the <a href="%s"> link</a>.</h2>
+	<h3>If you have any questions, please contact by <a href="mailto:amtc@gumrf.ru">amtc@gumrf.ru</a>.</h3>
+	<h4>Best Regards,
+	Organizing committee AMTC-2022</h4>
+	</body>
+	</html>`
+
+	EmailArticleTemplate = `
 	<<html>
 	<body>
 	<h3>Dear %s, </h3>
 	<h3>You received this email because you are registered for the International Conference 
-	«Arctic: Marine Transportation Challenges – 2022», which will take place on November 24-25, 2022.
-	Acceptance of full paper and abstracts is open. The full paper and abstracts template is available on the website page.</h3>
-	<h2>Abstract upload form at the link.<a href="%s"></a></h2>
-	<h2>The form for adding full paper is available at the link.<a href="%s"></a></h2>
-	<h3>If you have any questions, please contact by amtc@gumrf.ru.<a href="%s"></a></h3>
+	«Arctic: Marine Transportation Challenges – 2022»,
+	 which will take place on November 24-25, 2022.</h3>
+	<h2>Acceptance of full paper is open. The full paper template is available on the website page.</h2>
+	<h2>The form for adding full paper is available at the <a href="%s"> link</a>.</h2>
+	<h3>If you have any questions, please contact by <a href="mailto:amtc@gumrf.ru">amtc@gumrf.ru</a>.</h3>
 	<h4>Best Regards,
 	Organizing committee AMTC-2022</h4>
 	</body>
@@ -40,7 +55,7 @@ const (
 	<h3>%s, Full paper uploaded successfully. We will contact you if there are questions about the results of the review. </h3>
 	<h3>Please clarify by amtc@gumrf.ru whether an oral presentation is planned or only publication. 
 	In the case of an oral presentation, whether it will be a face-to-face or online participation.</h3>
-	<h3>If you have any questions, please contact by amtc@gumrf.ru.</h3>
+	<h3>If you have any questions, please contact by <a href="mailto:amtc@gumrf.ru">amtc@gumrf.ru</a>.</h3>
 	<a href="%s"></a>
 	</body>
 	</html>
@@ -50,7 +65,7 @@ const (
 	<body>
 	<h3>%s, Abstracts uploaded successfully. </h3>
 	<h3>The International Conference «Arctic: Marine Transportation Challenges – 2022» will be held on November 24-25, 2022</h3>
-	<h3>If you have any questions, please contact by amtc@gumrf.ru.</h3>
+	<h3>If you have any questions, please contact by <a href="mailto:amtc@gumrf.ru">amtc@gumrf.ru</a>.</h3>
 	<a href="%s"></a>
 	</body>
 	</html>
@@ -69,7 +84,8 @@ type Message struct {
 
 func (a *App) sendEmail(to To, message Message) error {
 	email := gomail.NewMessage(gomail.SetCharset("UTF-8"), gomail.SetEncoding(gomail.Base64))
-	email.SetAddressHeader("From", "Mailcumgum@yandex.ru", "AMTC 2022")
+	//TODO: add email fron .env
+	email.SetAddressHeader("From", "Germproof0825AMTC@yandex.ru", "AMTC 2022")
 	email.SetAddressHeader("To", to.Email, to.Name)
 	email.SetHeader("Subject", message.Subject)
 	email.SetBody("text/html", fmt.Sprintf(message.Text, to.Name, "link"))

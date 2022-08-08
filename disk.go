@@ -12,7 +12,7 @@ import (
 const (
 	YandexDiskAPIURL = "https://cloud-api.yandex.net/v1/disk"
 	ArticlesFolder   = "Articles"
-	AbstractsFolder  = "Tezisi"
+	AbstractsFolder  = "Abstracts"
 )
 
 var (
@@ -55,13 +55,15 @@ func saveToYandexDisk(file io.Reader, remotePath string) error {
 	var getUploadURLResponse UploadURLResponse
 	if err := json.NewDecoder(response.Body).Decode(&getUploadURLResponse); err != nil {
 		logger.Println(err)
+		fmt.Println(getUploadURLResponse)
 		return err
 	}
 
 	logger.Println(getUploadURLResponse)
-
+	//PUT
 	uploadFileRequest, err := http.NewRequest(getUploadURLResponse.Method, getUploadURLResponse.URL, file)
 	if err != nil {
+		fmt.Println(uploadFileRequest)
 		return err
 	}
 
@@ -69,6 +71,7 @@ func saveToYandexDisk(file io.Reader, remotePath string) error {
 
 	response, err = client.Do(uploadFileRequest)
 	if err != nil {
+		fmt.Println(response)
 		return err
 	}
 
@@ -83,5 +86,6 @@ func saveToYandexDisk(file io.Reader, remotePath string) error {
 // 		log.Fatal(err)
 // 	}
 
-// 	saveToYandexDisk(f, "Test/go.mod")
+// 	err = saveToYandexDisk(f, "Test/go.mod")
+// 	fmt.Println(err)
 // }

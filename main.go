@@ -115,8 +115,10 @@ func (a *App) Init() {
 	s.Get("/general-information", a.generalInfoView)
 	s.Get("/registration-and-submission", a.registrationView)
 	s.Post("/registration-and-submission", a.registerNewParticipant)
-	s.Get("/upload", a.uploadView)
-	s.Post("/upload", a.uploadArticleOrTezisi)
+	s.Get("/uploadArticles", a.uploadArticlesView)
+	s.Get("/uploadAbstracts", a.uploadAbstractsView)
+	s.Post("/uploadArticles", a.uploadArticles)
+	s.Post("/uploadAbstracts", a.uploadAbstracts)
 
 	admin := s.Group("/admin", basicauth.New(basicauth.Config{
 		Users: map[string]string{
@@ -125,7 +127,8 @@ func (a *App) Init() {
 	}))
 	admin.Get("/", a.adminView)
 	admin.Get("/file", a.downloadFile)
-	admin.Post("/mailing", a.mailing)
+	admin.Get("/articles", a.sendArticles)
+	admin.Get("/abstracts", a.sendAbstracts)
 
 	s.Use(a.notFoundView)
 }
