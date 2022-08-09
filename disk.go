@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 )
@@ -27,9 +26,7 @@ type UploadURLResponse struct {
 	Method      string `json:"method"`
 }
 
-func saveToYandexDisk(file io.Reader, remotePath string) error {
-	logger := log.Default()
-
+func (a *App) saveToYandexDisk(file io.Reader, remotePath string) error {
 	header := http.Header{}
 	header.Add("Authorization", "OAuth "+YandexOAuthToken)
 
@@ -38,7 +35,7 @@ func saveToYandexDisk(file io.Reader, remotePath string) error {
 	getUploadURLRequest, err := http.NewRequest("GET",
 		fmt.Sprintf("%s/resources/upload?path=%s&overwrite=true", YandexDiskAPIURL, remotePath), nil)
 	if err != nil {
-		logger.Println(err)
+		a.log.Error(err)
 		return err
 	}
 
@@ -46,7 +43,7 @@ func saveToYandexDisk(file io.Reader, remotePath string) error {
 
 	response, err := client.Do(getUploadURLRequest)
 	if err != nil {
-		logger.Println(err)
+		a.log.Error(err)
 		return err
 	}
 
@@ -54,16 +51,16 @@ func saveToYandexDisk(file io.Reader, remotePath string) error {
 
 	var getUploadURLResponse UploadURLResponse
 	if err := json.NewDecoder(response.Body).Decode(&getUploadURLResponse); err != nil {
-		logger.Println(err)
-		fmt.Println(getUploadURLResponse)
+		a.log.Error(err)
+		a.log.Debug(getUploadURLResponse)
 		return err
 	}
 
-	logger.Println(getUploadURLResponse)
-	//PUT
+	a.log.Debug(getUploadURLResponse)
+
 	uploadFileRequest, err := http.NewRequest(getUploadURLResponse.Method, getUploadURLResponse.URL, file)
 	if err != nil {
-		fmt.Println(uploadFileRequest)
+		a.log.Error(uploadFileRequest)
 		return err
 	}
 
@@ -71,21 +68,12 @@ func saveToYandexDisk(file io.Reader, remotePath string) error {
 
 	response, err = client.Do(uploadFileRequest)
 	if err != nil {
-		fmt.Println(response)
+		a.log.Error(err)
 		return err
 	}
+	a.log.Debug(response)
 
 	defer response.Body.Close()
 
 	return nil
 }
-
-// func main() {
-// 	f, err := os.Open("go.mod")
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-
-// 	err = saveToYandexDisk(f, "Test/go.mod")
-// 	fmt.Println(err)
-// }

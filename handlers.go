@@ -267,131 +267,113 @@ func (a *App) adminView(c *fiber.Ctx) error {
 	return c.Render("admin", data)
 }
 
-var form = fiber.Map{
-	"t": fiber.Map{
+var form = map[string]map[string]string{
+	"tezis": map[string]string{
 		"label": "Upload Abstracts",
-		"id":    "abstracts",
+		"id":    "tezis",
 	},
-	"a": fiber.Map{
+	"article": map[string]string{
 		"label": "Upload Full paper",
 		"id":    "article",
 	},
 }
 
-func (a *App) uploadArticlesView(c *fiber.Ctx) error {
-	code := c.Query("code")
-	log.Println(code)
-
-	t := c.Query("type")
-	log.Println(t)
-
-	if code == "" || t == "" {
-		log.Println("Empty params. Redirect not found")
-		return c.Redirect("not-found")
+func (a *App) uploadView(c *fiber.Ctx) error {
+	// t is type of file: article/tezis
+	t := c.Params("type")
+	if t != "article" && t != "tezis" {
+		a.log.Debug("file type", t)
+		return c.Redirect("/404")
 	}
 
-	if t != "a" && t != "t" {
-		log.Println("Invalid type params")
-		return c.Redirect("not-found")
+	id := c.Query("code")
+	if id == "" {
+		a.log.Debug("User id is empty")
+		return c.Redirect("/404")
 	}
+
+	a.log.Debug("User id", id)
 
 	var person Participant
-	result := a.db.First(&person, "code = ?", code)
+	result := a.db.First(&person, "code = ?", id)
 	if result.Error != nil {
-		log.Println(result.Error)
-		return c.Redirect("not-found")
+		a.log.Error(result.Error)
+		return c.Redirect("/404")
 	}
 
 	data := fiber.Map{}
-
 	data["Title"] = "Upload"
 	data["User"] = person
-	return c.Render("uploadArticles", data)
+	data["Form"] = form[t]
+	data["Path"] = t + "?code=" + person.Code
+
+	return c.Render("upload", data)
 }
 
-func (a *App) uploadAbstractsView(c *fiber.Ctx) error {
-	code := c.Query("code")
-	fmt.Println(code)
+const UploadErrorMessage = "Can't upload file."
 
+func (a *App) uploadFile(c *fiber.Ctx) error {
+	// t is type of file: article/tezis
+	t := c.Params("type")
+	if t != "article" && t != "tezis" {
+		a.log.Info("file type: ", t)
+		return c.Redirect("/404")
+	}
+
+	a.log.Debug("file type: ", t)
+
+	code := c.Query("code")
 	if code == "" {
-		return c.Redirect("not-found")
+		a.log.Info("User code is empty")
+		return c.Redirect("/404")
 	}
+
+	a.log.Debug("User id: ", code)
 
 	var person Participant
 	result := a.db.First(&person, "code = ?", code)
-
 	if result.Error != nil {
-		log.Fatal(result.Error)
+		a.log.Error(result.Error)
+		return c.Redirect("/404")
 	}
 
 	data := fiber.Map{}
 	data["Title"] = "Upload"
+	data["Form"] = form[t]
 	data["User"] = person
-	return c.Render("uploadAbstracts", data)
-}
+	data["Path"] = t + "?code=" + person.Code
 
-func (a *App) uploadArticles(c *fiber.Ctx) error {
-	article, err := c.FormFile("article")
+	file, err := c.FormFile(t)
 	if err != nil {
-		return err
+		a.log.Error(err)
+		data["Error"] = UploadErrorMessage
+		return c.Render("upload", data)
 	}
 
-	articleFile, err := article.Open()
+	content, err := file.Open()
 	if err != nil {
-		log.Fatal(err)
+		a.log.Error(err)
+		data["Error"] = UploadErrorMessage
+		return c.Render("upload", data)
 	}
 
-	defer articleFile.Close()
+	defer content.Close()
 
-	if err := saveToYandexDisk(articleFile, "Articles/"+article.Filename); err != nil {
-		log.Default().Panicln(err)
-		return err
+	fileName := fmt.Sprintf("%v_%s_%s_%s", person.ID, person.Surname, person.Name, t)
+
+	a.log.Debug("fileName: ", fileName)
+
+	yerr := a.saveToYandexDisk(content, strings.ToTitle(t)+"/"+fileName)
+	if yerr != nil {
+		a.log.Errorf("Can't save file to disk %v", err)
+
+		data["Error"] = UploadErrorMessage
+		return c.Render("upload", data)
 	}
 
-	// disable upload files
+	data["Success"] = "File successfully uplaoded"
 
-	return c.Render("uploadArticles", fiber.Map{})
-}
-
-func (a *App) uploadAbstracts(c *fiber.Ctx) error {
-	abstracts, err := c.FormFile("abstracts")
-	if err != nil {
-		return err
-	}
-
-	abstractsFile, err := abstracts.Open()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer abstractsFile.Close()
-
-	if err := saveToYandexDisk(abstractsFile, "Abstracts/"+abstracts.Filename); err != nil {
-		log.Default().Panicln(err)
-		return err
-	}
-
-	// disable upload files
-
-	return c.Render("uploadAbstracts", fiber.Map{})
-}
-
-func (a *App) sendArticles(c *fiber.Ctx) error {
-	var participants []Participant
-	a.db.Find(&participants)
-
-	// TODO: worker <-- chanel <-- participants ?
-
-	return errors.New("not implemented")
-}
-
-func (a *App) sendAbstracts(c *fiber.Ctx) error {
-	var participants []Participant
-	a.db.Find(&participants)
-
-	// TODO: worker <-- chanel <-- participants ?
-
-	return errors.New("not implemented")
+	return c.Render("upload", data)
 }
 
 func (a *App) notFoundView(c *fiber.Ctx) error {
@@ -401,23 +383,3 @@ func (a *App) notFoundView(c *fiber.Ctx) error {
 	data["Content"] = "Page Not Found"
 	return c.Render("basic", data)
 }
-
-// func worker(ch <-chan []Participant) {
-// 	//participan := Participant{}
-// 	mailQueue := <-ch
-// 	for len(mailQueue) > 0 {
-// 		participan := mailQueue[0]
-// 		if len(mailQueue) < 2 {
-// 			mailQueue = nil
-// 		} else {
-// 			mailQueue = mailQueue[1:]
-// 		}
-// 		go func() {
-// 			err := SendMail(To{participan.Name, participan.Email}, Message{EmailSubject, EmailTemplate})
-// 			if err != nil && participan.Attempts > 0 {
-// 				participan.Attempts--
-// 				mailQueue = append(mailQueue, participan)
-// 			}
-// 		}()
-// 	}
-// }

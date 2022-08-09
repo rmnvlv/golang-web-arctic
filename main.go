@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net"
 	"os"
 	"os/signal"
 	"strconv"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/basicauth"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/template/html"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
@@ -87,13 +87,14 @@ func NewApp(log *zap.SugaredLogger) (*App, error) {
 }
 
 func (a *App) Run() {
-	ln, err := net.Listen("unix", "/tmp/arctic.sock")
-	if err != nil {
-		a.log.Fatal("Listen error: ", err)
-	}
+	// ln, err := net.Listen("unix", "/tmp/arctic.sock")
+	// if err != nil {
+	// 	a.log.Fatal("Listen error: ", err)
+	// }
 
-	a.server.Listener(ln)
-	// a.server.Listen(":" + os.Getenv("PORT"))
+	// a.server.Listener(ln)
+
+	a.server.Listen(":" + os.Getenv("PORT"))
 }
 
 func (a *App) Shutdown(_ context.Context) error {
@@ -126,7 +127,10 @@ func (a *App) Shutdown(_ context.Context) error {
 func (a *App) bootstrap() {
 	s := a.server
 
-	s.Use(NewLoggerMiddleware(Config{Logger: a.log.Desugar(), Next: nil}))
+	s.Use(
+		logger.New(),
+		// NewLoggerMiddleware(Config{Logger: a.log.Desugar(), Next: nil}),
+	)
 
 	s.Static("/a", "./assets")
 
@@ -137,10 +141,8 @@ func (a *App) bootstrap() {
 	s.Get("/general-information", a.generalInfoView)
 	s.Get("/registration-and-submission", a.registrationView)
 	s.Post("/registration-and-submission", a.registerNewParticipant)
-	s.Get("/uploadArticles", a.uploadArticlesView)
-	s.Get("/uploadAbstracts", a.uploadAbstractsView)
-	s.Post("/uploadArticles", a.uploadArticles)
-	s.Post("/uploadAbstracts", a.uploadAbstracts)
+	s.Get("/upload/:type", a.uploadView)
+	s.Post("/upload/:type", a.uploadFile)
 
 	admin := s.Group("/admin", basicauth.New(basicauth.Config{
 		Users: map[string]string{
@@ -149,8 +151,8 @@ func (a *App) bootstrap() {
 	}))
 	admin.Get("/", a.adminView)
 	admin.Get("/file", a.downloadFile)
-	admin.Get("/articles", a.sendArticles)
-	admin.Get("/abstracts", a.sendAbstracts)
+	// admin.Get("/articles", a.sendArticles)
+	// admin.Get("/abstracts", a.sendAbstracts)
 
 	s.Use(a.notFoundView)
 }

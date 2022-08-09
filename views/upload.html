@@ -1,0 +1,50 @@
+<div class="px-4 mx-auto max-w-screen-xl">
+    <div class="mx-auto mt-10">
+        {{if .Success}}
+        <div class="p-4 mb-4 text-sm text-green-700 bg-green-300 rounded-lg border border-green-700">
+            {{.Success}} <span class="font-medium">&#9996;</span>
+        </div>
+        {{else}}        
+        <form action="/upload/{{.Path}}" method="POST" enctype="multipart/form-data">
+            <div class="shadow overflow-hidden sm:rounded-md">
+                <div class=" px-4 pt-5 bg-white text-sky-900 tracking-wide sm:p-6 min-h-max w-full">
+
+                    <div class="flex flex-row min-w-fit">
+                        <div class="py-2 pr-8">
+                            <p class="font-medium">Name</p>
+                            <p class="text-gray-500">{{.User.Name}}</p>
+                        </div>
+                        <div class="py-2">
+                            <p class="font-medium">Surname</p>
+                            <p class="text-gray-500">{{.User.Surname}}</p>
+                        </div>
+                    </div>
+                    <div class="py-2">
+                        <p class="font-medium">Email</p>
+                        <p class="text-gray-500">{{.User.Email}}</p>
+                    </div>
+
+                    <div class="flex flex-col items-start">
+                        <label for="{{.Form.id}}" class="pt-2 font-medium">{{.Form.label}}</label>
+                        <div class="py-4 text-sm text-gray-500">
+                            <input type="file" id="{{.Form.id}}" name="{{.Form.id}}"
+                                accept="application/pdf, application/msword"
+                                class="focus:ring-sky-500 border-gray-300 rounded">
+                        </div>
+                        {{if .Error}}
+                        <div class=" p-4 mb-4 text-sm text-red-700 bg-red-300 rounded-lg border border-red-700">
+                            {{.Error}}
+                        </div>
+                        {{end}}
+                    </div>
+
+                </div>
+                <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
+                    <button type="submit"
+                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">Upload</button>
+                </div>
+            </div>
+        </form>
+        {{end}}
+    </div>
+</div>
