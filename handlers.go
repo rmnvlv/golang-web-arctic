@@ -313,9 +313,14 @@ const UploadErrorMessage = "Can't upload file."
 func (a *App) uploadFile(c *fiber.Ctx) error {
 	// t is type of file: article/tezis
 	t := c.Params("type")
+	var emailMessage string
 	if t != "article" && t != "tezis" {
 		a.log.Info("file type: ", t)
 		return c.Redirect("/404")
+	} else if t == "article" {
+		emailMessage = EmailMailingArticleTemplate
+	} else if t == "tezis" {
+		emailMessage = EmailMailingAbstractsTemplate
 	}
 
 	a.log.Debug("file type: ", t)
@@ -370,7 +375,14 @@ func (a *App) uploadFile(c *fiber.Ctx) error {
 		return c.Render("upload", data)
 	}
 
-	data["Success"] = "File successfully uplaoded"
+	data["Success"] = "File successfully uploaded"
+
+	if err = a.sendEmail(
+		To{strings.Join([]string{person.Name, person.Surname}, " "), person.Email},
+		Message{EmailSubjectUploaded, fmt.Sprintf(emailMessage, strings.Join([]string{person.Name, person.Surname}, " "))},
+	); err != nil {
+		a.log.Error(err)
+	}
 
 	return c.Render("upload", data)
 }
@@ -382,8 +394,12 @@ func (a *App) sendMailing(c *fiber.Ctx) error {
 
 	fileForm := c.FormValue("file-form")
 
+	errorEmails := make([]string, 1)
+	flag := false
+
 	for _, participant := range participants {
-		hrefUpload := fmt.Sprintf("http://%s/:%s/%s/%s?code=%s", Cfg["DOMAIN"], Cfg["ADDRESS"], "upload", fileForm, participant.Code)
+		// https://adres.com/upload/(article/tezis)?code=user_uuid
+		hrefUpload := fmt.Sprintf("http://%s:%s/%s/%s?code=%s", Cfg["DOMAIN"], Cfg["HOST"], "upload", fileForm, participant.Code)
 
 		nameSurname := strings.Join([]string{participant.Name, participant.Surname}, " ")
 
@@ -394,21 +410,37 @@ func (a *App) sendMailing(c *fiber.Ctx) error {
 				Message{EmailSubjectMailing, fmt.Sprintf(EmailAbstractsTemplate, nameSurname, hrefUpload)},
 			); err != nil {
 				a.log.Debug(fmt.Sprintf("Message to email: %s not sent, error: %s", participant.Email, err))
+				errorEmails = append(errorEmails, participant.Email)
+				flag = true
 			}
-			time.Sleep(5 * time.Second)
+			time.Sleep(1 * time.Second)
 		case "article":
 			if err := a.sendEmail(
 				To{nameSurname, participant.Email},
 				Message{EmailSubjectMailing, fmt.Sprintf(EmailArticleTemplate, nameSurname, hrefUpload)},
 			); err != nil {
 				a.log.Debug(fmt.Sprintf("Message to email: %s not sent, error: %s", participant.Email, err))
+				errorEmails = append(errorEmails, participant.Email)
+				flag = true
 			}
-			time.Sleep(5 * time.Second)
+			time.Sleep(1 * time.Second)
 		}
 
 	}
 
-	return c.Redirect("/admin")
+	data := fiber.Map{}
+
+	if flag {
+		data["Error"] = fmt.Sprintf("Messages not sent to this emails: %v", errorEmails)
+		data["Ending"] = "Message sending completed with some errors"
+	} else {
+		data["Success"] = "Message sending completed successfully"
+		data["Ending"] = "Completed"
+	}
+
+	data["Links"] = Links
+
+	return c.Render("admin", data)
 }
 
 func (a *App) notFoundView(c *fiber.Ctx) error {

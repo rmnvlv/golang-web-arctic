@@ -102,7 +102,7 @@ func (a *App) Run() {
 
 	// a.server.Listener(ln)
 
-	a.server.Listen(":" + Cfg["ADDRESS"])
+	a.server.Listen(":" + Cfg["HOST"])
 }
 
 func (a *App) Shutdown(_ context.Context) error {
@@ -167,7 +167,7 @@ func (a *App) bootstrap() {
 func CheckEnv() {
 	values := []string{"HCAPTCHA_SECRET_KEY", "HCAPTCHA_SECRET_KEY", "YANDEX_OAUTH_TOKEN",
 		"SMTP_USER", "SMTP_PASSWORD", "SMTP_HOST", "SMTP_PORT", "ADMIN_PASSWORD",
-		"DATABASE_URL", "ADDRESS", "DOMAIN"}
+		"DATABASE_URL", "HOST", "DOMAIN"}
 
 	for _, value := range values {
 		path, exists := os.LookupEnv(value)
