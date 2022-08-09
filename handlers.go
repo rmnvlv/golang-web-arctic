@@ -381,6 +381,7 @@ func (a *App) sendMailing(c *fiber.Ctx) error {
 	a.db.Find(&participants)
 
 	fileForm := c.FormValue("file-form")
+
 	for _, participant := range participants {
 		hrefUpload := fmt.Sprintf("http://%s/:%s/%s/%s?code=%s", Cfg["DOMAIN"], Cfg["ADDRESS"], "upload", fileForm, participant.Code)
 
@@ -407,7 +408,7 @@ func (a *App) sendMailing(c *fiber.Ctx) error {
 
 	}
 
-	return nil
+	return c.Redirect("/admin")
 }
 
 func (a *App) notFoundView(c *fiber.Ctx) error {
