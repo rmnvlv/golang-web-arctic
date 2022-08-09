@@ -26,7 +26,7 @@ type App struct {
 	db     *gorm.DB
 	mailer gomail.SendCloser
 	log    *zap.SugaredLogger
-	// disk   *YandexDsik
+	disk   Disk
 	// captcha *HCaptcha
 }
 
@@ -67,6 +67,13 @@ func NewApp(log *zap.SugaredLogger) (*App, error) {
 
 	log.Infof("Authenticated to SMTP server: %s:%d", smtpHost, smtpPort)
 
+	disk, err := NewOsDisk(os.Getenv("DISK_PATH"))
+	if err != nil {
+		return nil, fmt.Errorf("can't create disk: %w", err)
+	}
+
+	log.Info("Disk initialized at: %s", disk.Path)
+
 	server := fiber.New(fiber.Config{
 		Views:       html.New("./views", ".html"),
 		ViewsLayout: "main",
@@ -77,6 +84,7 @@ func NewApp(log *zap.SugaredLogger) (*App, error) {
 		db:     db,
 		mailer: m,
 		log:    log,
+		disk:   disk,
 	}
 
 	app.bootstrap()

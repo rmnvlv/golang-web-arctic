@@ -1,79 +1,115 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"io"
-	"net/http"
 	"os"
+
+	"github.com/google/uuid"
 )
 
-const (
-	YandexDiskAPIURL = "https://cloud-api.yandex.net/v1/disk"
-	ArticlesFolder   = "Articles"
-	AbstractsFolder  = "Abstracts"
-)
-
-var (
-	YandexClientId    = os.Getenv("YANDEX_CLIENT_ID")
-	YandexCallbackURL = os.Getenv("YANDEX_CALLBACK_URL")
-	YandexOAuthToken  = os.Getenv("YANDEX_OAUTH_TOKEN")
-)
-
-type UploadURLResponse struct {
-	OperationId string `json:"operation_id"`
-	URL         string `json:"href"`
-	Method      string `json:"method"`
+type Disk interface {
+	Save(file io.Reader, fileName string) error
 }
 
-func (a *App) saveToYandexDisk(file io.Reader, remotePath string) error {
-	header := http.Header{}
-	header.Add("Authorization", "OAuth "+YandexOAuthToken)
+type OsDisk struct {
+	Path string
+}
 
-	client := http.Client{}
-
-	getUploadURLRequest, err := http.NewRequest("GET",
-		fmt.Sprintf("%s/resources/upload?path=%s&overwrite=true", YandexDiskAPIURL, remotePath), nil)
+func NewOsDisk(path string) (*OsDisk, error) {
+	err := os.MkdirAll(path, 0777)
 	if err != nil {
-		a.log.Error(err)
-		return err
+		return nil, err
 	}
 
-	getUploadURLRequest.Header = header
+	return &OsDisk{Path: path}, nil
+}
 
-	response, err := client.Do(getUploadURLRequest)
+func (d *OsDisk) Save(file io.Reader, fileName string) error {
+	f, err := os.Create(d.Path + "/" + fileName)
 	if err != nil {
-		a.log.Error(err)
 		return err
 	}
 
-	defer response.Body.Close()
-
-	var getUploadURLResponse UploadURLResponse
-	if err := json.NewDecoder(response.Body).Decode(&getUploadURLResponse); err != nil {
-		a.log.Error(err)
-		a.log.Debug(getUploadURLResponse)
-		return err
-	}
-
-	a.log.Debug(getUploadURLResponse)
-
-	uploadFileRequest, err := http.NewRequest(getUploadURLResponse.Method, getUploadURLResponse.URL, file)
+	_, err = io.Copy(f, file)
 	if err != nil {
-		a.log.Error(uploadFileRequest)
 		return err
 	}
-
-	uploadFileRequest.Header = header
-
-	response, err = client.Do(uploadFileRequest)
-	if err != nil {
-		a.log.Error(err)
-		return err
-	}
-	a.log.Debug(response)
-
-	defer response.Body.Close()
 
 	return nil
 }
+
+func (a *App) saveToDisk(file io.Reader, extention string) error {
+	fileName := uuid.New().String()
+
+	return a.disk.Save(file, fileName+"."+extention)
+}
+
+// const (
+// 	YandexDiskAPIURL = "https://cloud-api.yandex.net/v1/disk"
+// 	ArticlesFolder   = "Articles"
+// 	AbstractsFolder  = "Abstracts"
+// )
+
+// var (
+// 	YandexClientId    = os.Getenv("YANDEX_CLIENT_ID")
+// 	YandexCallbackURL = os.Getenv("YANDEX_CALLBACK_URL")
+// 	YandexOAuthToken  = os.Getenv("YANDEX_OAUTH_TOKEN")
+// )
+
+// type UploadURLResponse struct {
+// 	OperationId string `json:"operation_id"`
+// 	URL         string `json:"href"`
+// 	Method      string `json:"method"`
+// }
+
+// func (a *App) saveToYandexDisk(file io.Reader, remotePath string) error {
+// 	header := http.Header{}
+// 	header.Add("Authorization", "OAuth "+YandexOAuthToken)
+
+// 	client := http.Client{}
+
+// 	getUploadURLRequest, err := http.NewRequest("GET",
+// 		fmt.Sprintf("%s/resources/upload?path=%s&overwrite=true", YandexDiskAPIURL, remotePath), nil)
+// 	if err != nil {
+// 		a.log.Error(err)
+// 		return err
+// 	}
+
+// 	getUploadURLRequest.Header = header
+
+// 	response, err := client.Do(getUploadURLRequest)
+// 	if err != nil {
+// 		a.log.Error(err)
+// 		return err
+// 	}
+
+// 	defer response.Body.Close()
+
+// 	var getUploadURLResponse UploadURLResponse
+// 	if err := json.NewDecoder(response.Body).Decode(&getUploadURLResponse); err != nil {
+// 		a.log.Error(err)
+// 		a.log.Debug(getUploadURLResponse)
+// 		return err
+// 	}
+
+// 	a.log.Debug(getUploadURLResponse)
+
+// 	uploadFileRequest, err := http.NewRequest(getUploadURLResponse.Method, getUploadURLResponse.URL, file)
+// 	if err != nil {
+// 		a.log.Error(uploadFileRequest)
+// 		return err
+// 	}
+
+// 	uploadFileRequest.Header = header
+
+// 	response, err = client.Do(uploadFileRequest)
+// 	if err != nil {
+// 		a.log.Error(err)
+// 		return err
+// 	}
+// 	a.log.Debug(response)
+
+// 	defer response.Body.Close()
+
+// 	return nil
+// }

@@ -22,5 +22,7 @@ type Participant struct {
 	PresentationSection string
 
 	PresentationTitle string
-	Attempts          int
+
+	Article string
+	Tizis   string
 }

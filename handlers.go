@@ -36,8 +36,6 @@ func (a *App) registerNewParticipant(c *fiber.Ctx) error {
 		PresentationForm:    c.FormValue("presentation-form"),
 		PresentationSection: c.FormValue("presentation-section"),
 		PresentationTitle:   c.FormValue("presentation-title"),
-		Code:                "",
-		Attempts:            3,
 	}
 
 	formErrors := make(map[string]string)
@@ -350,6 +348,11 @@ func (a *App) uploadFile(c *fiber.Ctx) error {
 		return c.Render("upload", data)
 	}
 
+	s := strings.Split(file.Filename, ".")
+	ext := s[len(s)-1]
+
+	a.log.Info("file extetton", ext)
+
 	content, err := file.Open()
 	if err != nil {
 		a.log.Error(err)
@@ -359,13 +362,9 @@ func (a *App) uploadFile(c *fiber.Ctx) error {
 
 	defer content.Close()
 
-	fileName := fmt.Sprintf("%v_%s_%s_%s", person.ID, person.Surname, person.Name, t)
-
-	a.log.Debug("fileName: ", fileName)
-
-	yerr := a.saveToYandexDisk(content, strings.ToTitle(t)+"/"+fileName)
-	if yerr != nil {
-		a.log.Errorf("Can't save file to disk %v", err)
+	err = a.saveToDisk(content, ext)
+	if err != nil {
+		a.log.Errorf("Can't save file to disk: %v", err)
 
 		data["Error"] = UploadErrorMessage
 		return c.Render("upload", data)
