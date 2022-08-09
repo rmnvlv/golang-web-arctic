@@ -18,6 +18,7 @@ const (
 		</body>
 		</html>
 	`
+	EmailSubjectMailing    = "AMTC 2022"
 	EmailAbstractsTemplate = `
 	<<html>
 	<body>
@@ -84,12 +85,12 @@ type Message struct {
 func (a *App) sendEmail(to To, message Message) error {
 	email := gomail.NewMessage(gomail.SetCharset("UTF-8"), gomail.SetEncoding(gomail.Base64))
 	//TODO: add email fron .env
-	email.SetAddressHeader("From", "Germproof0825AMTC@yandex.ru", "AMTC 2022")
+	email.SetAddressHeader("From", Cfg["SMTP_USER"], "AMTC 2022")
 	email.SetAddressHeader("To", to.Email, to.Name)
 	email.SetHeader("Subject", message.Subject)
 	email.SetBody("text/html", message.Text)
 
-	return a.mailer.Send(os.Getenv("SMTP_USER") /*bad things can happen in here*/, []string{to.Email}, email)
+	return a.mailer.Send(Cfg["SMTP_USER"] /*bad things can happen in here*/, []string{to.Email}, email)
 }
 
 func (a *App) sendNewsletter(mailList []To, message Message) {
