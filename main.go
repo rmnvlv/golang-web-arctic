@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"strconv"
@@ -21,6 +22,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var Cfg = make(map[string]string)
+
 type App struct {
 	server *fiber.App
 	db     *gorm.DB
@@ -31,7 +34,7 @@ type App struct {
 }
 
 func NewApp(log *zap.SugaredLogger) (*App, error) {
-	dbURL := os.Getenv("DATABASE_URL")
+	dbURL := Cfg["DATABASE_URL"]
 
 	// TODO: .env DB_URL="/name" + pull docker with my sql
 	// db, err := gorm.Open(mysql.Open(dbURL), &gorm.Config{})
@@ -52,20 +55,17 @@ func NewApp(log *zap.SugaredLogger) (*App, error) {
 
 	log.Info("Migrations applied")
 
-	smtpPort, err := strconv.Atoi(os.Getenv("SMTP_PORT"))
+	smtpPort, err := strconv.Atoi(Cfg["SMTP_PORT"])
 	if err != nil {
 		return nil, fmt.Errorf("can't convert an SMTP server port to int: %w", err)
 	}
-	smtpHost := os.Getenv("SMTP_HOST")
-	smtpUser := os.Getenv("SMTP_USER")
-	smtpPassword := os.Getenv("SMTP_PASSWORD")
 
-	m, err := gomail.NewDialer(smtpHost, smtpPort, smtpUser, smtpPassword).Dial()
+	m, err := gomail.NewDialer(Cfg["SMTP_HOST"], smtpPort, Cfg["SMTP_USER"], Cfg["SMTP_PASSWORD"]).Dial()
 	if err != nil {
 		return nil, fmt.Errorf("can't authenticate to an SMTP server: %w", err)
 	}
 
-	log.Infof("Authenticated to SMTP server: %s:%d", smtpHost, smtpPort)
+	log.Infof("Authenticated to SMTP server: %s:%d", Cfg["SMTP_HOST"], smtpPort)
 
 	server := fiber.New(fiber.Config{
 		Views:       html.New("./views", ".html"),
@@ -94,7 +94,7 @@ func (a *App) Run() {
 
 	// a.server.Listener(ln)
 
-	a.server.Listen(":" + os.Getenv("PORT"))
+	a.server.Listen(":" + Cfg["ADDRESS"])
 }
 
 func (a *App) Shutdown(_ context.Context) error {
@@ -146,21 +146,38 @@ func (a *App) bootstrap() {
 
 	admin := s.Group("/admin", basicauth.New(basicauth.Config{
 		Users: map[string]string{
-			"admin": os.Getenv("ADMIN_PASSWORD"),
+			"admin": Cfg["ADMIN_PASSWORD"],
 		},
 	}))
 	admin.Get("/", a.adminView)
 	admin.Get("/file", a.downloadFile)
-	// admin.Get("/articles", a.sendArticles)
-	// admin.Get("/abstracts", a.sendAbstracts)
+	admin.Post("/mailing", a.sendMailing)
 
 	s.Use(a.notFoundView)
+}
+
+func CheckEnv() {
+	values := []string{"HCAPTCHA_SECRET_KEY", "HCAPTCHA_SECRET_KEY", "YANDEX_OAUTH_TOKEN",
+		"SMTP_USER", "SMTP_PASSWORD", "SMTP_HOST", "SMTP_PORT", "ADMIN_PASSWORD",
+		"DATABASE_URL", "ADDRESS", "DOMAIN"}
+
+	for _, value := range values {
+		path, exists := os.LookupEnv(value)
+		if path == "" || !exists {
+			log.Fatalf("%s does not exists, please fill .env", value)
+		}
+		Cfg[value] = path
+	}
+
+	log.Print(Cfg)
 }
 
 func init() {
 	if err := godotenv.Load(); err != nil {
 		panic("can't load .env: " + err.Error())
 	}
+
+	CheckEnv()
 }
 
 func main() {

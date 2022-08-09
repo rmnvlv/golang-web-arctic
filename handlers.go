@@ -376,6 +376,41 @@ func (a *App) uploadFile(c *fiber.Ctx) error {
 	return c.Render("upload", data)
 }
 
+func (a *App) sendMailing(c *fiber.Ctx) error {
+	var participants []Participant
+
+	a.db.Find(&participants)
+
+	fileForm := c.FormValue("file-form")
+	for _, participant := range participants {
+		hrefUpload := fmt.Sprintf("http://%s/:%s/%s/%s?code=%s", Cfg["DOMAIN"], Cfg["ADDRESS"], "upload", fileForm, participant.Code)
+
+		nameSurname := strings.Join([]string{participant.Name, participant.Surname}, " ")
+
+		switch fileForm {
+		case "tezis":
+			if err := a.sendEmail(
+				To{nameSurname, participant.Email},
+				Message{EmailSubjectMailing, fmt.Sprintf(EmailAbstractsTemplate, nameSurname, hrefUpload)},
+			); err != nil {
+				a.log.Debug(fmt.Sprintf("Message to email: %s not sent, error: %s", participant.Email, err))
+			}
+			time.Sleep(5 * time.Second)
+		case "article":
+			if err := a.sendEmail(
+				To{nameSurname, participant.Email},
+				Message{EmailSubjectMailing, fmt.Sprintf(EmailArticleTemplate, nameSurname, hrefUpload)},
+			); err != nil {
+				a.log.Debug(fmt.Sprintf("Message to email: %s not sent, error: %s", participant.Email, err))
+			}
+			time.Sleep(5 * time.Second)
+		}
+
+	}
+
+	return nil
+}
+
 func (a *App) notFoundView(c *fiber.Ctx) error {
 	data := fiber.Map{}
 	data["Title"] = "Page Not Found"

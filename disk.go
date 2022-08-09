@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 )
 
 const (
@@ -15,9 +14,7 @@ const (
 )
 
 var (
-	YandexClientId    = os.Getenv("YANDEX_CLIENT_ID")
-	YandexCallbackURL = os.Getenv("YANDEX_CALLBACK_URL")
-	YandexOAuthToken  = os.Getenv("YANDEX_OAUTH_TOKEN")
+	YandexOAuthToken = Cfg["YANDEX_OAUTH_TOKEN"]
 )
 
 type UploadURLResponse struct {
