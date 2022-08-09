@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
+	"net"
 	"os"
 	"os/signal"
 	"strconv"
@@ -12,9 +12,10 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/basicauth"
-	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/template/html"
 	"github.com/joho/godotenv"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"gopkg.in/gomail.v2"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -24,12 +25,12 @@ type App struct {
 	server *fiber.App
 	db     *gorm.DB
 	mailer gomail.SendCloser
-	// logger *zap.SugaredLogger
+	log    *zap.SugaredLogger
 	// disk   *YandexDsik
 	// captcha *HCaptcha
 }
 
-func NewApp() (*App, error) {
+func NewApp(log *zap.SugaredLogger) (*App, error) {
 	dbURL := os.Getenv("DATABASE_URL")
 
 	// TODO: .env DB_URL="/name" + pull docker with my sql
@@ -43,9 +44,13 @@ func NewApp() (*App, error) {
 		return nil, fmt.Errorf("can't open database")
 	}
 
+	log.Infof("Connected to database: %s", dbURL)
+
 	if err := db.AutoMigrate(&Participant{}); err != nil {
 		return nil, fmt.Errorf("can't apply migrations to database: %w", err)
 	}
+
+	log.Info("Migrations applied")
 
 	smtpPort, err := strconv.Atoi(os.Getenv("SMTP_PORT"))
 	if err != nil {
@@ -60,18 +65,35 @@ func NewApp() (*App, error) {
 		return nil, fmt.Errorf("can't authenticate to an SMTP server: %w", err)
 	}
 
+	log.Infof("Authenticated to SMTP server: %s:%d", smtpHost, smtpPort)
+
 	server := fiber.New(fiber.Config{
 		Views:       html.New("./views", ".html"),
 		ViewsLayout: "main",
 	})
 
-	app := App{db: db, mailer: m, server: server}
+	app := App{
+		server: server,
+		db:     db,
+		mailer: m,
+		log:    log,
+	}
+
+	app.bootstrap()
+
+	log.Info("Initialization finished")
 
 	return &app, nil
 }
 
 func (a *App) Run() {
-	a.server.Listen(":" + os.Getenv("PORT"))
+	ln, err := net.Listen("unix", "/tmp/arctic.sock")
+	if err != nil {
+		a.log.Fatal("Listen error: ", err)
+	}
+
+	a.server.Listener(ln)
+	// a.server.Listen(":" + os.Getenv("PORT"))
 }
 
 func (a *App) Shutdown(_ context.Context) error {
@@ -101,10 +123,10 @@ func (a *App) Shutdown(_ context.Context) error {
 	return nil
 }
 
-func (a *App) Init() {
+func (a *App) bootstrap() {
 	s := a.server
 
-	s.Use(logger.New())
+	s.Use(NewLoggerMiddleware(Config{Logger: a.log.Desugar(), Next: nil}))
 
 	s.Static("/a", "./assets")
 
@@ -135,17 +157,28 @@ func (a *App) Init() {
 
 func init() {
 	if err := godotenv.Load(); err != nil {
-		log.Printf("Err with load env %s", err)
+		panic("can't load .env: " + err.Error())
 	}
 }
 
 func main() {
-	app, err := NewApp()
+	lc := zap.NewDevelopmentConfig()
+	lc.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05.000")
+	lc.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+
+	l, err := lc.Build()
+	if err != nil {
+		panic(err)
+	}
+
+	log := l.Sugar()
+
+	log.Info("Logger initialized")
+
+	app, err := NewApp(log)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	app.Init()
 
 	stop := make(chan os.Signal, 1)
 
@@ -155,7 +188,7 @@ func main() {
 	go func() {
 		<-stop
 
-		log.Println("Received an interrupt signal, shutdown")
+		log.Info("Received an interrupt signal, shutdown")
 
 		// ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		// defer cancel()
@@ -163,10 +196,10 @@ func main() {
 		if err := app.Shutdown(context.TODO()); err != nil {
 			// Do recovery???
 			// app.logger.Errorf("Server shutdown failed: %w", err)
-			log.Printf("Server shutdown failed: %v", err)
+			log.Errorf("Server shutdown failed: %v", err)
 		}
 
-		log.Println("Seccessfully shutdowned")
+		log.Info("Seccessfully shutdowned")
 
 	}()
 

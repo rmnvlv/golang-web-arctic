@@ -93,6 +93,18 @@ func (a *App) sendEmail(to To, message Message) error {
 	return a.mailer.Send(os.Getenv("SMTP_USER") /*bad things can happen in here*/, []string{to.Email}, email)
 }
 
-func (a *App) sendNewsletter(mailList []To, message Message) error {
-	panic("not implemented")
+func (a *App) sendNewsletter(mailList []To, message Message) {
+	for _, to := range mailList {
+		email := gomail.NewMessage(gomail.SetCharset("UTF-8"), gomail.SetEncoding(gomail.Base64))
+		email.SetAddressHeader("From", "amtc@gumrf.ru", "AMTC 2022")
+		email.SetAddressHeader("To", to.Email, to.Name)
+		email.SetHeader("Subject", message.Subject)
+		email.SetBody("text/html", message.Text)
+
+		if err := a.mailer.Send(os.Getenv("SMTP_USER"), []string{to.Email}, email); err != nil {
+			a.log.Errorf("Could not send email to %q: %v", to.Email, err)
+		}
+
+		email.Reset()
+	}
 }
