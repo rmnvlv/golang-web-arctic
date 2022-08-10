@@ -1,6 +1,8 @@
 package main
 
 import (
+	"archive/zip"
+	"bytes"
 	"encoding/csv"
 	"errors"
 	"fmt"
@@ -121,7 +123,7 @@ func (a *App) registerNewParticipant(c *fiber.Ctx) error {
 	return c.Render("registration", data)
 }
 
-func (a *App) downloadFile(c *fiber.Ctx) error {
+func (a *App) downloadExcel(c *fiber.Ctx) error {
 	var participants []Participant
 
 	a.db.Find(&participants)
@@ -209,6 +211,14 @@ func (a *App) downloadFile(c *fiber.Ctx) error {
 	}
 
 	return c.SendFile("./" + fileNameExcel)
+}
+
+func (a *App) downloadFiles(c *fiber.Ctx) error {
+	archive := bytes.NewBufferString("")
+	zipWriter := zip.NewWriter(archive)
+	zipWriter.
+
+	return c.Send(archive.Bytes())
 }
 
 func (a *App) mainView(c *fiber.Ctx) error {
@@ -398,33 +408,33 @@ func (a *App) sendMailing(c *fiber.Ctx) error {
 	flag := false
 
 	for _, participant := range participants {
-		// https://adres.com/upload/(article/tezis)?code=user_uuid
-		hrefUpload := fmt.Sprintf("http://%s:%s/%s/%s?code=%s", Cfg["DOMAIN"], Cfg["HOST"], "upload", fileForm, participant.Code)
+		hrefUpload := fmt.Sprintf("http://%s/%s/%s?code=%s", a.config.Domain, "upload", fileForm, participant.Code)
 
 		nameSurname := strings.Join([]string{participant.Name, participant.Surname}, " ")
 
+		var template string
 		switch fileForm {
 		case "tezis":
-			if err := a.sendEmail(
-				To{nameSurname, participant.Email},
-				Message{EmailSubjectMailing, fmt.Sprintf(EmailAbstractsTemplate, nameSurname, hrefUpload)},
-			); err != nil {
-				a.log.Debug(fmt.Sprintf("Message to email: %s not sent, error: %s", participant.Email, err))
-				errorEmails = append(errorEmails, participant.Email)
-				flag = true
-			}
-			time.Sleep(1 * time.Second)
+			template = EmailAbstractsTemplate
 		case "article":
-			if err := a.sendEmail(
-				To{nameSurname, participant.Email},
-				Message{EmailSubjectMailing, fmt.Sprintf(EmailArticleTemplate, nameSurname, hrefUpload)},
-			); err != nil {
-				a.log.Debug(fmt.Sprintf("Message to email: %s not sent, error: %s", participant.Email, err))
-				errorEmails = append(errorEmails, participant.Email)
-				flag = true
-			}
-			time.Sleep(1 * time.Second)
+			template = EmailArticleTemplate
 		}
+
+		err := a.sendEmail(
+			To{
+				nameSurname,
+				participant.Email,
+			},
+			Message{
+				EmailSubjectMailing,
+				fmt.Sprintf(template, nameSurname, hrefUpload),
+			},
+		)
+		if err != nil {
+			a.log.Debug(fmt.Sprintf("Message to email: %s not sent, error: %s", participant.Email, err))
+		}
+
+		// time.Sleep(1 * time.Second)
 
 	}
 

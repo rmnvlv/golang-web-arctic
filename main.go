@@ -4,10 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
+	"net"
 	"os"
 	"os/signal"
-	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -16,13 +15,12 @@ import (
 	"github.com/gofiber/template/html"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"gopkg.in/gomail.v2"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
-var Cfg = make(map[string]string)
+// var Cfg = make(map[string]string)
 
 type App struct {
 	server *fiber.App
@@ -30,49 +28,34 @@ type App struct {
 	mailer gomail.SendCloser
 	log    *zap.SugaredLogger
 	disk   Disk
-	// captcha *HCaptcha
+	config Config
 }
 
-func NewApp(log *zap.SugaredLogger) (*App, error) {
-	dbURL := Cfg["DATABASE_URL"]
+func NewApp(config Config, log *zap.SugaredLogger) (*App, error) {
 
-	// TODO: .env DB_URL="/name" + pull docker with my sql
-	// db, err := gorm.Open(mysql.Open(dbURL), &gorm.Config{})
-	// if err != nil {
-	// 	return nil, fmt.Errorf("can't open database: %w", err)
-	// }
-
-	db, err := gorm.Open(sqlite.Open(dbURL), &gorm.Config{})
+	// db, err := gorm.Open(mysql.Open(config.DatabaseURL), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(config.DatabaseURL), &gorm.Config{})
 	if err != nil {
-		return nil, fmt.Errorf("can't open database")
+		return nil, fmt.Errorf("can't open database: %w", err)
 	}
-
-	log.Infof("Connected to database: %s", dbURL)
+	log.Infof("Connected to database: %s", config.DatabaseURL)
 
 	if err := db.AutoMigrate(&Participant{}); err != nil {
 		return nil, fmt.Errorf("can't apply migrations to database: %w", err)
 	}
-
 	log.Info("Migrations applied")
 
-	smtpPort, err := strconv.Atoi(Cfg["SMTP_PORT"])
-	if err != nil {
-		return nil, fmt.Errorf("can't convert an SMTP server port to int: %w", err)
-	}
-
-	m, err := gomail.NewDialer(Cfg["SMTP_HOST"], smtpPort, Cfg["SMTP_USER"], Cfg["SMTP_PASSWORD"]).Dial()
+	m, err := gomail.NewDialer(config.SMTP.Host, config.SMTP.Port, config.SMTP.User, config.SMTP.Password).Dial()
 	if err != nil {
 		return nil, fmt.Errorf("can't authenticate to an SMTP server: %w", err)
 	}
+	log.Infof("Authenticated to SMTP server: %s:%d", config.SMTP.Host, config.SMTP.Port)
 
-	log.Infof("Authenticated to SMTP server: %s:%d", Cfg["SMTP_HOST"], smtpPort)
-
-	disk, err := NewOsDisk(os.Getenv("DISK_PATH"))
+	disk, err := NewOsDisk(config.DiskPath)
 	if err != nil {
 		return nil, fmt.Errorf("can't create disk: %w", err)
 	}
-
-	log.Info("Disk initialized at: %s", disk.Path)
+	log.Infof("Disk initialized at: %s", disk.Path)
 
 	server := fiber.New(fiber.Config{
 		Views:       html.New("./views", ".html"),
@@ -85,6 +68,7 @@ func NewApp(log *zap.SugaredLogger) (*App, error) {
 		mailer: m,
 		log:    log,
 		disk:   disk,
+		config: config,
 	}
 
 	app.bootstrap()
@@ -95,14 +79,17 @@ func NewApp(log *zap.SugaredLogger) (*App, error) {
 }
 
 func (a *App) Run() {
-	// ln, err := net.Listen("unix", "/tmp/arctic.sock")
-	// if err != nil {
-	// 	a.log.Fatal("Listen error: ", err)
-	// }
-
-	// a.server.Listener(ln)
-
-	a.server.Listen(":" + Cfg["HOST"])
+	if a.config.HTTPAddressUnix != "" {
+		ln, err := net.Listen("unix", a.config.HTTPAddressUnix)
+		if err != nil {
+			a.log.Fatal("Listen error: ", err)
+		}
+		a.server.Listener(ln)
+	} else if a.config.HTTPAddress != "" {
+		a.server.Listen(a.config.HTTPAddress)
+	} else {
+		a.server.Listen(":" + os.Getenv("PORT"))
+	}
 }
 
 func (a *App) Shutdown(_ context.Context) error {
@@ -154,55 +141,38 @@ func (a *App) bootstrap() {
 
 	admin := s.Group("/admin", basicauth.New(basicauth.Config{
 		Users: map[string]string{
-			"admin": Cfg["ADMIN_PASSWORD"],
+			"admin": a.config.AdminPassword,
 		},
 	}))
 	admin.Get("/", a.adminView)
-	admin.Get("/file", a.downloadFile)
+	admin.Get("/file", a.downloadExcel)
 	admin.Post("/mailing", a.sendMailing)
+	admin.Get("/download/:file", a.downloadFiles)
 
 	s.Use(a.notFoundView)
-}
-
-func CheckEnv() {
-	values := []string{"HCAPTCHA_SECRET_KEY", "HCAPTCHA_SECRET_KEY", "YANDEX_OAUTH_TOKEN",
-		"SMTP_USER", "SMTP_PASSWORD", "SMTP_HOST", "SMTP_PORT", "ADMIN_PASSWORD",
-		"DATABASE_URL", "HOST", "DOMAIN"}
-
-	for _, value := range values {
-		path, exists := os.LookupEnv(value)
-		if path == "" || !exists {
-			log.Fatalf("%s does not exists, please fill .env", value)
-		}
-		Cfg[value] = path
-	}
-
-	log.Print(Cfg)
 }
 
 func init() {
 	if err := godotenv.Load(); err != nil {
 		panic("can't load .env: " + err.Error())
 	}
-
-	CheckEnv()
 }
 
 func main() {
-	lc := zap.NewDevelopmentConfig()
-	lc.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05.000")
-	lc.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-
-	l, err := lc.Build()
+	log, err := NewLogger()
 	if err != nil {
 		panic(err)
 	}
-
-	log := l.Sugar()
-
 	log.Info("Logger initialized")
 
-	app, err := NewApp(log)
+	config, err := NewConfig()
+	if err != nil {
+		log.Fatalf("Config not loaded: %w", err)
+	}
+
+	log.Infof("Config loaded:\n%s", config.String())
+
+	app, err := NewApp(config, log)
 	if err != nil {
 		log.Fatal(err)
 	}
