@@ -46,41 +46,77 @@
       </table>
     </div>
 
-    <div class="py-6">
+    <div class="pt-6 pb-2">
       <p class="py-2 block text-sm font-medium">
         Get excel file with all participants
       </p>
-      <a href="/admin/file" download>
+      <a href="/admin/download/participants" download>
         <button type="button"
           class="text-white bg-sky-700 hover:bg-sky-800 focus:ring-4 focus:ring-sky-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-sky-600 dark:hover:bg-sky-700 focus:outline-none dark:focus:ring-sky-800">
           Download
         </button>
       </a>
-
     </div>
+
+    <div class="py-2">
+      <p class="py-2 block text-sm font-medium">
+        Get articles
+      </p>
+      <a href="/admin/download/tezisi" download>
+        <button type="button"
+          class="text-white bg-sky-700 hover:bg-sky-800 focus:ring-4 focus:ring-sky-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-sky-600 dark:hover:bg-sky-700 focus:outline-none dark:focus:ring-sky-800">
+          Download
+        </button>
+      </a>
+    </div>
+
+    <div class="py-2">
+      <p class="py-2 block text-sm font-medium">
+        Get abstracts
+      </p>
+      <a href="/admin/download/articles" download>
+        <button type="button"
+          class="text-white bg-sky-700 hover:bg-sky-800 focus:ring-4 focus:ring-sky-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-sky-600 dark:hover:bg-sky-700 focus:outline-none dark:focus:ring-sky-800">
+          Download
+        </button>
+      </a>
+    </div>
+
+    <!-- <div class="py-2">
+      <p class="py-2 block text-sm font-medium">
+        Get everything inside an archive, including participants
+      </p>
+      <a href="/admin/download/all" download>
+        <button type="button"
+          class="text-white bg-sky-700 hover:bg-sky-800 focus:ring-4 focus:ring-sky-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-sky-600 dark:hover:bg-sky-700 focus:outline-none dark:focus:ring-sky-800">
+          Download
+        </button>
+      </a>
+    </div> -->
+
     <form action="/admin/mailing" method="POST">
       <label for="file-form" class="py-2 block text-sm font-medium">
         Make Newsletter
       </label>
 
       {{if .Success}}
-        <div class="p-4 mb-4 text-sm text-green-700 bg-green-300 rounded-lg border border-green-700">
-          {{.Success}}
-          <span class="font-medium">&#9996;</span>
-        </div>
+      <div class="p-4 mb-4 text-sm text-green-700 bg-green-300 rounded-lg border border-green-700">
+        {{.Success}}
+        <span class="font-medium">&#9996;</span>
+      </div>
       {{end}}
 
       {{if .Ending}}
-        <div class="p-4 mb-4 text-sm text-black-700 bg-grey-300 rounded-lg border border-grey-700">
-          {{.Ending}}
-        </div>
+      <div class="p-4 mb-4 text-sm text-black-700 bg-grey-300 rounded-lg border border-grey-700">
+        {{.Ending}}
+      </div>
       {{end}}
 
       {{if .Error}}
-        <div class=" p-4 mb-4 text-sm text-red-700 bg-red-300 rounded-lg border border-red-700">
-          <!-- <span class="font-medium">Alert!</span> -->
-          {{.Error}}
-        </div>
+      <div class=" p-4 mb-4 text-sm text-red-700 bg-red-300 rounded-lg border border-red-700">
+        <!-- <span class="font-medium">Alert!</span> -->
+        {{.Error}}
+      </div>
       {{end}}
 
       <div class="flex flex-row items-center">
@@ -91,11 +127,11 @@
           <option>article</option>
         </select>
         <button type="submit" id="submitbutton"
-        class="text-white bg-sky-700 hover:bg-sky-800 focus:ring-4 focus:ring-sky-300 font-medium rounded-lg text-sm px-5 py-3 dark:bg-sky-600 dark:hover:bg-sky-700 focus:outline-none dark:focus:ring-sky-800">
-        Send emails to upload files
-        <span class="text-red-700">*Do not press the button again until a success or error message</span>
-      </button>
-    </div>
+          class="text-white bg-sky-700 hover:bg-sky-800 focus:ring-4 focus:ring-sky-300 font-medium rounded-lg text-sm px-5 py-3 dark:bg-sky-600 dark:hover:bg-sky-700 focus:outline-none dark:focus:ring-sky-800">
+          Send emails to upload files
+          <span class="text-red-700">*Do not press the button again until a success or error message</span>
+        </button>
+      </div>
     </form>
   </div>
 

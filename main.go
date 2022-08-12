@@ -20,7 +20,11 @@ import (
 	"gorm.io/gorm"
 )
 
-// var Cfg = make(map[string]string)
+func init() {
+	if err := godotenv.Load(); err != nil {
+		panic("can't load .env: " + err.Error())
+	}
+}
 
 type App struct {
 	server *fiber.App
@@ -145,17 +149,10 @@ func (a *App) bootstrap() {
 		},
 	}))
 	admin.Get("/", a.adminView)
-	admin.Get("/file", a.downloadExcel)
 	admin.Post("/mailing", a.sendMailing)
 	admin.Get("/download/:file", a.downloadFiles)
 
 	s.Use(a.notFoundView)
-}
-
-func init() {
-	if err := godotenv.Load(); err != nil {
-		panic("can't load .env: " + err.Error())
-	}
 }
 
 func main() {

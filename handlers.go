@@ -3,16 +3,16 @@ package main
 import (
 	"archive/zip"
 	"bytes"
-	"encoding/csv"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/mail"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
 	emailverifier "github.com/AfterShip/email-verifier"
@@ -123,19 +123,13 @@ func (a *App) registerNewParticipant(c *fiber.Ctx) error {
 	return c.Render("registration", data)
 }
 
-func (a *App) downloadExcel(c *fiber.Ctx) error {
+func (a *App) createExcelFile() (*bytes.Buffer, error) {
 	var participants []Participant
 
-	a.db.Find(&participants)
-
-	fileName := "./" + strconv.FormatInt(time.Now().Unix(), 10) + ".xlsx"
-	file, err := os.Create(fileName)
-	if err != nil {
-		return err
+	result := a.db.Find(&participants)
+	if err := result.Error; err != nil {
+		return &bytes.Buffer{}, err
 	}
-	defer file.Close()
-
-	writer := csv.NewWriter(file)
 
 	headers := []string{
 		"Name",
@@ -150,75 +144,128 @@ func (a *App) downloadExcel(c *fiber.Ctx) error {
 		"Code",
 	}
 
-	if err := writer.Write(headers); err != nil {
-		panic(err)
+	document := excelize.NewFile()
+
+	sheetName := "AMTC_2022_Participants"
+	_ = document.NewSheet(sheetName)
+	document.DeleteSheet("Sheet1")
+
+	for i, h := range headers {
+		cellId := string([]byte{uint8(65 + i)}) + "1"
+		fmt.Println(cellId)
+		document.SetCellValue(sheetName, cellId, h)
 	}
 
-	for _, participan := range participants {
-		row := []string{
-			participan.Name,
-			participan.Surname,
-			participan.Organization,
-			participan.Position,
-			participan.Phone,
-			participan.Email,
-			participan.PresentationForm,
-			participan.PresentationSection,
-			participan.PresentationTitle,
-			participan.Code,
-		}
-		if err := writer.Write(row); err != nil {
-			panic(err)
-		}
+	for i, participan := range participants {
+		rowIndex := strconv.Itoa(i + 2)
+		document.SetCellValue(sheetName, "A"+rowIndex, participan.Name)
+		document.SetCellValue(sheetName, "B"+rowIndex, participan.Surname)
+		document.SetCellValue(sheetName, "C"+rowIndex, participan.Organization)
+		document.SetCellValue(sheetName, "D"+rowIndex, participan.Position)
+		document.SetCellValue(sheetName, "E"+rowIndex, participan.Phone)
+		document.SetCellValue(sheetName, "F"+rowIndex, participan.Email)
+		document.SetCellValue(sheetName, "H"+rowIndex, participan.PresentationSection)
+		document.SetCellValue(sheetName, "I"+rowIndex, participan.PresentationTitle)
+		document.SetCellValue(sheetName, "J"+rowIndex, participan.Code)
 	}
 
-	writer.Flush()
-
-	fileExcel := excelize.NewFile()
-
-	_ = fileExcel.NewSheet("Sheet1")
-
-	fileExcel.SetCellValue("Sheet1", "A1", "Name")
-	fileExcel.SetCellValue("Sheet1", "B1", "Surname")
-	fileExcel.SetCellValue("Sheet1", "C1", "Organization")
-	fileExcel.SetCellValue("Sheet1", "D1", "Position")
-	fileExcel.SetCellValue("Sheet1", "E1", "Phone")
-	fileExcel.SetCellValue("Sheet1", "F1", "Email")
-	fileExcel.SetCellValue("Sheet1", "G1", "PresentationForm")
-	fileExcel.SetCellValue("Sheet1", "H1", "PresentationSection")
-	fileExcel.SetCellValue("Sheet1", "I1", "PresentationTitle")
-	fileExcel.SetCellValue("Sheet1", "J1", "Unique code")
-
-	// "ABCDEFGHIJ"
-	for counter, participan := range participants {
-		number := strconv.Itoa(counter + 2)
-		fileExcel.SetCellValue("Sheet1", "A"+number, participan.Name)
-		fileExcel.SetCellValue("Sheet1", "B"+number, participan.Surname)
-		fileExcel.SetCellValue("Sheet1", "C"+number, participan.Organization)
-		fileExcel.SetCellValue("Sheet1", "D"+number, participan.Position)
-		fileExcel.SetCellValue("Sheet1", "E"+number, participan.Phone)
-		fileExcel.SetCellValue("Sheet1", "F"+number, participan.Email)
-		fileExcel.SetCellValue("Sheet1", "G"+number, participan.PresentationForm)
-		fileExcel.SetCellValue("Sheet1", "H"+number, participan.PresentationSection)
-		fileExcel.SetCellValue("Sheet1", "I"+number, participan.PresentationTitle)
-		fileExcel.SetCellValue("Sheet1", "J"+number, participan.Code)
+	var buf bytes.Buffer
+	if err := document.Write(&buf); err != nil {
+		return &bytes.Buffer{}, err
 	}
 
-	fileNameExcel := strconv.FormatInt(time.Now().Unix(), 10) + ".xlsx" //  "./" +
-
-	if err = fileExcel.SaveAs(fileNameExcel); err != nil {
-		return err
-	}
-
-	return c.SendFile("./" + fileNameExcel)
+	return &buf, nil
 }
 
 func (a *App) downloadFiles(c *fiber.Ctx) error {
-	archive := bytes.NewBufferString("")
-	zipWriter := zip.NewWriter(archive)
-	zipWriter.
+	fileType := c.Params("file")
 
-	return c.Send(archive.Bytes())
+	a.log.Debug(fileType)
+
+	var (
+		file     *bytes.Buffer
+		err      error
+		fileName string
+	)
+
+	switch fileType {
+	case "participants":
+		file, err = a.createExcelFile()
+		fileName = fmt.Sprintf("AMTC_2022_%s.%s", "Paticipants", "xlsx")
+	case "articles":
+		file, err = createZipArchive(a.config.DiskPath + "/" + fileType)
+		fileName = fmt.Sprintf("AMTC_2022_%s.%s", "Articles", "zip")
+	case "tezisi":
+		file, err = createZipArchive(a.config.DiskPath + "/" + fileType)
+		fileName = fmt.Sprintf("AMTC_2022_%s.%s", "Tezisi", "zip")
+	// case "all":
+	// 	file, err = createZipArchive(a.config.DiskPath)
+	// 	fileName = fmt.Sprintf("AMTC_2022_%s.%s", "Tesisi+Articles+Participants", "zip")
+	default:
+		return c.RedirectToRoute("/admin", fiber.Map{
+			"Errors": []string{
+				fmt.Sprintf("File type doesn't exist: %s", fileType),
+			},
+		})
+	}
+
+	if err != nil {
+		return c.RedirectToRoute("admin", fiber.Map{
+			"Errors": []string{
+				fmt.Sprintf("Can't create zip archive: %s", err.Error()),
+			},
+		})
+	}
+	c.Set("Content-Description", "File Transfer")
+	c.Set("Content-Disposition", "attachment; filename="+fileName)
+	c.Status(fiber.StatusOK)
+	return c.SendStream(file)
+}
+
+func createZipArchive(src string) (*bytes.Buffer, error) {
+	buf := new(bytes.Buffer)
+
+	zw := zip.NewWriter(buf)
+	defer zw.Close()
+
+	walker := func(path string, info os.FileInfo, err error) error {
+		fmt.Printf("Crawling: %#v\n", path)
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			return nil
+		}
+		file, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		// Ensure that `path` is not absolute; it should not start with "/".
+		// This snippet happens to work because I don't use
+		// absolute paths, but ensure your real-world code
+		// transforms path into a zip-root relative path.
+		p := strings.TrimLeft(path, src)
+		fmt.Println(path, p)
+
+		f, err := zw.Create(p)
+		if err != nil {
+			return err
+		}
+
+		_, err = io.Copy(f, file)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+	if err := filepath.Walk(src, walker); err != nil {
+		return nil, fmt.Errorf("walk: %w", err)
+	}
+
+	return buf, nil
 }
 
 func (a *App) mainView(c *fiber.Ctx) error {
