@@ -22,14 +22,14 @@ SMTP_PORT=25
 
 ADMIN_PASSWORD="123456"
 
+# Can be set as flags
 DATABASE_URL="test.db"
-
-PORT=8080
+DISK_PATH=".disk"
 ````
 
 Запустить сервер
 ```shell
-go run .
+go run . serve --http="127.0.0.1:8080" --db-url="test.db" --disk-path=".disk"
 ```
 
 Когда меняются стили, tailwind должен знать об этом. 
