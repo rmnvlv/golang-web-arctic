@@ -5,17 +5,23 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-func NewLogger() (*zap.SugaredLogger, error) {
+type Logger struct {
+	*zap.SugaredLogger
+}
+
+func (l *Logger) Init() error {
 	c := zap.NewDevelopmentConfig()
 	c.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05.000")
 	c.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 
-	l, err := c.Build()
+	zl, err := c.Build()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return l.Sugar(), nil
+	l.SugaredLogger = zl.Sugar()
+
+	return nil
 }
 
 // // Config defines the config for middleware
