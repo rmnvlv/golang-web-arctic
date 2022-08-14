@@ -137,6 +137,8 @@ func (a *App) registerRoutes() {
 	s.Post("/registration-and-submission", a.registerNewParticipant)
 	s.Get("/upload/:type", a.uploadView)
 	s.Post("/upload/:type", a.uploadFile)
+	s.Get("/open-upload", a.openUploadView)
+	s.Post("/open-upload", a.openUpload)
 
 	admin := s.Group("/admin", basicauth.New(basicauth.Config{
 		Users: map[string]string{

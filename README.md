@@ -22,6 +22,8 @@ SMTP_PORT=25
 
 ADMIN_PASSWORD="123456"
 
+UPLOADING_DATE="08-14"
+
 # Can be set as flags
 DATABASE_URL="test.db"
 DISK_PATH=".disk"

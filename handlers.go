@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
 	emailverifier "github.com/AfterShip/email-verifier"
@@ -98,21 +99,13 @@ func (a *App) registerNewParticipant(c *fiber.Ctx) error {
 
 		if err := a.sendEmail(
 			To{strings.Join([]string{participant.Name, participant.Surname}, " "), participant.Email},
-			Message{EmailSubject, EmailAbstractsTemplate},
+			Message{EmailSubject, EmailRegistrationTemplate},
 		); err != nil {
 			// log
 			fmt.Println(err)
 		}
 
-		// mailQueue = append(mailQueue, participant)
-
-		// ch := make(chan []Participant, 1)
-		// go worker(ch)
-		// ch <- mailQueue
-		// close(ch)
-
 		messages["Success"] = SuccessMessage
-
 	}
 
 	data["Title"] = "Registration and submission"
@@ -159,12 +152,13 @@ func (a *App) createExcelFile() (*bytes.Buffer, error) {
 
 	for i, participan := range participants {
 		rowIndex := strconv.Itoa(i + 2)
-		document.SetCellValue(sheetName, "A"+rowIndex, participan.Name)
-		document.SetCellValue(sheetName, "B"+rowIndex, participan.Surname)
-		document.SetCellValue(sheetName, "C"+rowIndex, participan.Organization)
-		document.SetCellValue(sheetName, "D"+rowIndex, participan.Position)
-		document.SetCellValue(sheetName, "E"+rowIndex, participan.Phone)
-		document.SetCellValue(sheetName, "F"+rowIndex, participan.Email)
+		document.SetCellValue(sheetName, "A"+rowIndex, participan.Id)
+		document.SetCellValue(sheetName, "B"+rowIndex, participan.Name)
+		document.SetCellValue(sheetName, "C"+rowIndex, participan.Surname)
+		document.SetCellValue(sheetName, "D"+rowIndex, participan.Organization)
+		document.SetCellValue(sheetName, "E"+rowIndex, participan.Position)
+		document.SetCellValue(sheetName, "F"+rowIndex, participan.Phone)
+		document.SetCellValue(sheetName, "G"+rowIndex, participan.Email)
 		document.SetCellValue(sheetName, "H"+rowIndex, participan.PresentationSection)
 		document.SetCellValue(sheetName, "I"+rowIndex, participan.PresentationTitle)
 		document.SetCellValue(sheetName, "J"+rowIndex, participan.Code)
@@ -425,7 +419,9 @@ func (a *App) uploadFile(c *fiber.Ctx) error {
 
 	defer content.Close()
 
-	err = a.saveToDisk(content, ext)
+	fileName := fmt.Sprintf("%s_%s_%s_%s", person.Name, person.Surname, person.Email, t)
+
+	err = a.saveToDisk(content, ext, fileName)
 	if err != nil {
 		a.log.Errorf("Can't save file to disk: %v", err)
 
@@ -480,6 +476,8 @@ func (a *App) sendMailing(c *fiber.Ctx) error {
 		)
 		if err != nil {
 			a.log.Debug(fmt.Sprintf("Message to email: %s not sent, error: %s", participant.Email, err))
+			errorEmails = append(errorEmails, participant.Email)
+			flag = true
 		}
 
 		// time.Sleep(1 * time.Second)
@@ -499,6 +497,134 @@ func (a *App) sendMailing(c *fiber.Ctx) error {
 	data["Links"] = Links
 
 	return c.Render("admin", data)
+}
+
+func (a *App) openUpload(c *fiber.Ctx) error {
+	name := c.FormValue("name")
+	surname := c.FormValue("surname")
+	email := c.FormValue("email")
+
+	formErrors := make(map[string]string)
+
+	//Validate surname
+	val, err := regexp.MatchString(`^[a-zA-Z]+$`, surname)
+	if err != nil || !val {
+		formErrors["Surname"] = "Surname can only be a-z A-Z."
+	}
+	//validate name
+	val, err = regexp.MatchString(`^[a-zA-Z]+$`, name)
+	if err != nil || !val {
+		formErrors["Name"] = "Name can only be a-z A-Z."
+	}
+	//validate email
+	if _, err := mail.ParseAddress(email); err != nil {
+		formErrors["Email"] = "Wrong email format. Example: mail@example.com"
+	}
+	verifier := emailverifier.NewVerifier()
+	if _, err = verifier.Verify(email); err != nil {
+		formErrors["Email"] = "Email does not exists."
+	}
+
+	//Upload file
+
+	data := fiber.Map{}
+
+	data["Links"] = Links
+	data["Title"] = "Opened upload"
+
+	messages := make(map[string]string)
+
+	if len(formErrors) > 0 {
+		messages["Error"] = ErrorMessage
+	} else {
+
+		file, err := c.FormFile("article")
+		if err != nil {
+			a.log.Error(err)
+			messages["Error"] = UploadErrorMessage
+			data["Message"] = messages
+			return c.Render("open-upload", data)
+		}
+
+		s := strings.Split(file.Filename, ".")
+		ext := s[len(s)-1]
+
+		a.log.Info("file extetton", ext)
+
+		content, err := file.Open()
+		if err != nil {
+			a.log.Error(err)
+			messages["Error"] = UploadErrorMessage
+			data["Message"] = messages
+			return c.Render("open-upload", data)
+		}
+		defer content.Close()
+
+		uniqueId := uuid.New().String()
+		fileName := fmt.Sprintf("%s_%s_%s_%s_%s", name, surname, email, "open-upload", uniqueId)
+
+		err = a.saveToDisk(content, ext, fileName)
+		if err != nil {
+			a.log.Errorf("Can't save file to disk: %v", err)
+			messages["Error"] = UploadErrorMessage
+			data["Message"] = messages
+			return c.Render("open-upload", data)
+		}
+
+		messages["Success"] = "File successfully uploaded"
+
+		if err := a.sendEmail(
+			To{strings.Join([]string{name, surname}, " "), email},
+			Message{EmailSubjectUploaded, fmt.Sprintf(EmailMailingArticleTemplate, strings.Join([]string{name, surname}, " "))},
+		); err != nil {
+			a.log.Error(err)
+		}
+	}
+
+	data["Message"] = messages
+	data["Errors"] = formErrors
+
+	return c.Render("open-upload", data)
+}
+
+func (a *App) openUploadView(c *fiber.Ctx) error {
+	//month-day now
+	dtNow := time.Now().Format("01-02")
+	monthNow, err := strconv.Atoi(dtNow[0:2])
+	if err != nil {
+		return err
+	}
+	dayNow, err := strconv.Atoi(dtNow[3:])
+	if err != nil {
+		return err
+	}
+	a.log.Debug(dtNow, monthNow, dayNow)
+
+	//TODO: From .env
+	dtNeed := a.config.UploadingDate
+	monthNeed, err := strconv.Atoi(dtNeed[0:2])
+	if err != nil {
+		return err
+	}
+	dayNeed, err := strconv.Atoi(dtNeed[3:])
+	if err != nil {
+		return err
+	}
+	a.log.Debug(dtNeed, monthNeed, dayNeed)
+
+	data := fiber.Map{}
+
+	if monthNeed <= monthNow && dayNeed <= dayNow {
+		//render download
+		data["Title"] = "upload"
+		data["Links"] = Links
+		return c.Render("open-upload", data)
+	} else {
+		//render error
+		data["Title"] = "upload"
+		data["Links"] = Links
+		return c.Render("closed-upload", data)
+	}
 }
 
 func (a *App) notFoundView(c *fiber.Ctx) error {

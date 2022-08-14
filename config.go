@@ -17,6 +17,7 @@ type Config struct {
 	Captcha         HCaptchaConfig
 	SMTP            SMTPConfig
 	DiskPath        string
+	UploadingDate   string
 }
 
 type HCaptchaConfig struct {
@@ -108,6 +109,11 @@ func NewConfig() (Config, error) {
 		return Config{}, fmt.Errorf("ADMIN_PASSWORD not set")
 	}
 
+	c.UploadingDate, ok = os.LookupEnv("UPLOADING_DATE")
+	if !ok {
+		return Config{}, fmt.Errorf("UPLOADING_DATE not set")
+	}
+
 	return c, nil
 
 }
@@ -176,12 +182,17 @@ func (c *Config) LoadEnv() error {
 		return fmt.Errorf("ADMIN_PASSWORD not set")
 	}
 
+	c.UploadingDate, ok = os.LookupEnv("UPLOADING_DATE")
+	if !ok {
+		return fmt.Errorf("UPLOADING_DATE not set")
+	}
+
 	return nil
 }
 
 func (c *Config) String() string {
 	b, _ := json.MarshalIndent(c, "", "  ")
-	
+
 	buf := bytes.NewBuffer(b)
 
 	return buf.String()

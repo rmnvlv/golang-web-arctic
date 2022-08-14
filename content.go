@@ -20,7 +20,7 @@ func links(source []string) []link {
 	return links
 }
 
-var Links = links([]string{"Programme Overview", "Keynote Speakers", "Registration and submission", "Requirements", "General information"})
+var Links = links([]string{"Programme Overview", "Keynote Speakers", "Registration and submission", "Requirements", "General information", "Open upload"})
 
 var IndexPage = fiber.Map{
 	// "Title": "",
