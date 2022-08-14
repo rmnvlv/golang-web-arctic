@@ -12,3 +12,5 @@
 - [ ] Не сохраняются значения из комбобоксов при регистрации
 - [ ] Рассылки
 - [ ] Redirects with data instead of duplicate Render call
+- [ ] Handlers errors should redirect to /admin and be rendered
+- [ ] Makefile
