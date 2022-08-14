@@ -132,6 +132,7 @@ func (a *App) createExcelFile() (*bytes.Buffer, error) {
 	}
 
 	headers := []string{
+		"Id",
 		"Name",
 		"Surname",
 		"Organization",

@@ -1,0 +1,98 @@
+<div class="px-4 mx-auto max-w-screen-xl">
+    <div class="mt-10 sm:mt-0 mx-auto">
+        <div class="md:grid md:grid-cols-2 md:gap-6">
+            <div class="mt-5 md:mt-0 md:col-span-2 lg:pt-8">
+                <form action="/open-upload" method="POST" enctype="multipart/form-data">
+                    <div class="shadow overflow-hidden sm:rounded-md">
+                        <div class="px-4 py-5 bg-white text-sky-900 tracking-wide sm:p-6 min-h-max">
+                            <h2 class="py-6 self-center text-xl font-semibold">Upload articles for AMTC 2022 Conference</h2>
+                            
+                            {{if .Message.Success}}
+                            <div class="p-4 mb-4 text-sm text-green-700 bg-green-300 rounded-lg border border-green-700">
+                                {{.Message.Success}}
+                                <span class="font-medium">&#9996;</span>
+                            </div>
+                            {{end}}
+    
+                            {{if .Message.Error}}
+                            <div class=" p-4 mb-4 text-sm text-red-700 bg-red-300 rounded-lg border border-red-700">
+                                <!-- <span class="font-medium">Some fields has errors!</span> -->
+                                {{.Message.Error}}
+                            </div>
+                            {{end}}
+    
+    
+                            <div class="grid grid-cols-6 gap-6">
+                                <div class="col-span-6 sm:col-span-2">
+                                    <label for="name" class="block text-sm font-medium">
+                                        Name<span class="text-red-700"> *</span>
+                                    </label>
+                                    <input type="text" name="name" id="name" value="{{.Values.Name}}" required
+                                        class="mt-1 focus:ring-sky-500 focus:border-sky-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                    {{if .Errors.Name}}
+                                    <div class="mt-4 p-4 mb-4 text-sm text-red-700 bg-red-300 rounded-lg border border-red-700">
+                                        <!-- <span class="font-medium">Oops!</span> -->
+                                        {{.Errors.Name}}
+                                    </div>
+                                    {{end}}
+                                </div>
+    
+                                <div class="col-span-6 sm:col-span-2">
+                                    <label for="surname" class="block text-sm font-medium">
+                                        Surname<span class="text-red-700"> *</span>
+                                    </label>
+                                    <input type="text" name="surname" id="surname" value="{{.Values.Surname}}" required
+                                        class="mt-1 focus:ring-sky-500 focus:border-sky-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                    {{if .Errors.Surname}}
+                                    <div class="mt-4 p-4 mb-4 text-sm text-red-700 bg-red-300 rounded-lg border border-red-700">
+                                        <!-- <span class="font-medium">Oops!</span> -->
+                                        {{.Errors.Surname}}
+                                    </div>
+                                    {{end}}
+                                </div>
+    
+                                <div class="col-span-6 sm:col-span-4">
+                                    <label for="email" class="block text-sm font-medium">
+                                        E-mail<span class="text-red-700"> *</span>
+                                    </label>
+                                    <input 
+                                        type="text"
+                                        name="email"
+                                        id="email"
+                                        value="{{.Values.Email}}"
+                                        required
+                                        class="mt-1 focus:ring-sky-500 focus:border-sky-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                    {{if .Errors.Email}}
+                                    <div class="mt-4 p-4 mb-4 text-sm text-red-700 bg-red-300 rounded-lg border border-red-700">
+                                        <!-- <span class="font-medium">Oops!</span> -->
+                                        {{.Errors.Email}}
+                                    </div>
+                                    {{end}}
+                                </div>
+
+                                <div class="flex flex-col items-start">
+                                    <label for="article" class="pt-2 font-medium">Article</label>
+                                    <div class="py-4 text-sm text-gray-500">
+                                        <input type="file" id="article" name="article"
+                                            accept="application/pdf, application/msword"
+                                            class="focus:ring-sky-500 border-gray-300 rounded">
+                                    </div>
+                                    {{if .Error}}
+                                    <div class=" p-4 mb-4 text-sm text-red-700 bg-red-300 rounded-lg border border-red-700">
+                                        {{.Error}}
+                                    </div>
+                                    {{end}}
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
+                            <button type="submit"
+                                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">Upload</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
