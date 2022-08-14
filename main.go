@@ -128,6 +128,13 @@ func (a *App) registerRoutes() {
 
 	s.Static("/a", "./assets")
 
+	s.Use(func(c *fiber.Ctx) error {
+		c.Bind(fiber.Map{
+			"Links": links([]string{"Programme Overview", "Keynote Speakers", "Registration and submission", "Requirements", "General information", "Open upload"}),
+		})
+		return c.Next()
+	})
+
 	s.Get("/", a.mainView)
 	s.Get("/programme-overview", a.programOverviewView)
 	s.Get("/keynote-speakers", a.keynoteSpeakersView)
@@ -140,13 +147,23 @@ func (a *App) registerRoutes() {
 	s.Get("/open-upload", a.openUploadView)
 	s.Post("/open-upload", a.openUpload)
 
-	admin := s.Group("/admin", basicauth.New(basicauth.Config{
-		Users: map[string]string{
-			"admin": a.config.AdminPassword,
+	admin := s.Group("/admin",
+		basicauth.New(
+			basicauth.Config{
+				Users: map[string]string{
+					"admin": a.config.AdminPassword,
+				},
+			},
+		),
+		func(c *fiber.Ctx) error {
+			c.Bind(fiber.Map{
+				"Title": "Admin",
+			})
+			return c.Next()
 		},
-	}))
+	)
 	admin.Get("/", a.adminView)
-	admin.Post("/mailing", a.sendMailing)
+	admin.Post("/mailing", a.sendNewsletter)
 	admin.Get("/download/:file", a.downloadFiles)
 
 	s.Use(a.notFoundView)
@@ -193,7 +210,7 @@ func main() {
 
 				if err := app.Shutdown(context.TODO()); err != nil {
 					// Do recovery???
-					logger.Errorf("Application shutdown failed: %v", err)
+					logger.Errorf("Application shutdown failed: %v", err.Error())
 				}
 
 				logger.Info("Seccessfully stoped application")

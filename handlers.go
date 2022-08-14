@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/mail"
 	"os"
 	"path/filepath"
@@ -22,11 +21,9 @@ import (
 )
 
 const (
-	ErrorMessage   = "Some form fields are entered incorrectly. Please change them."
-	SuccessMessage = "Thank you for registration for AMTC 2022!"
+	ErrorMessage   = "Some form fields are entered incorrectly. Change them and try again."
+	SuccessMessage = "Seccessfully registred for AMTC 2022!"
 )
-
-// var mailQueue []Participant = nil
 
 func (a *App) registerNewParticipant(c *fiber.Ctx) error {
 	participant := Participant{
@@ -43,18 +40,16 @@ func (a *App) registerNewParticipant(c *fiber.Ctx) error {
 
 	formErrors := make(map[string]string)
 
-	if os.Getenv("APP_ENV") == "prod" {
+	if a.config.Captcha.Enable {
 		hCaptcha := c.FormValue("h-captcha-response")
 
 		if ok, err := verifyCaptcha(hCaptcha); !ok {
 			if errors.Is(err, ErrCaptchaEmpty) {
 				formErrors["Captcha"] = "Сaptcha is not passed"
-				// formError.Captcha = "Сaptcha is not passed"
 			} else {
-				// formError.Captcha = "Please try again"
 				formErrors["Captcha"] = "Please try again"
 			}
-			log.Println(err)
+			a.log.Error(err.Error())
 		}
 	}
 
@@ -77,10 +72,7 @@ func (a *App) registerNewParticipant(c *fiber.Ctx) error {
 	if _, err := mail.ParseAddress(participant.Email); err != nil {
 		formErrors["Email"] = "Wrong email format. Example: mail@example.com"
 	}
-	// val, err = regexp.MatchString(`[^@\s]+@[^@\s]+\.[^@\s]+$`, participant.Email)
-	// if err != nil || !val {
-	// 	formErrors["Email"] = "Wrong email format. Example: mail@example.com"
-	// }
+
 	verifier := emailverifier.NewVerifier()
 	if _, err = verifier.Verify(participant.Email); err != nil {
 		formErrors["Email"] = "Email does not exists."
@@ -99,17 +91,15 @@ func (a *App) registerNewParticipant(c *fiber.Ctx) error {
 
 		if err := a.sendEmail(
 			To{strings.Join([]string{participant.Name, participant.Surname}, " "), participant.Email},
-			Message{EmailSubject, EmailRegistrationTemplate},
+			Message{AfterRegistrationEmail.Subject, fmt.Sprintf(AfterRegistrationEmail.Text, a.config.Domain)},
 		); err != nil {
-			// log
-			fmt.Println(err)
+			a.log.Errorf("Can't send email to %s: %w", participant.Email, err.Error())
 		}
 
 		messages["Success"] = SuccessMessage
 	}
 
 	data["Title"] = "Registration and submission"
-	data["Links"] = Links
 	data["Errors"] = formErrors
 	data["Message"] = messages
 
@@ -263,60 +253,6 @@ func createZipArchive(src string) (*bytes.Buffer, error) {
 	return buf, nil
 }
 
-func (a *App) mainView(c *fiber.Ctx) error {
-	data := IndexPage
-	data["Links"] = Links
-	data["Header"] = true
-	return c.Render("index", data)
-}
-
-func (a *App) programOverviewView(c *fiber.Ctx) error {
-	data := fiber.Map{}
-	data["Links"] = Links
-	data["Title"] = "Programme Overview"
-	return c.Render("programm-overview", data)
-}
-
-func (a *App) keynoteSpeakersView(c *fiber.Ctx) error {
-	data := fiber.Map{}
-	data["Title"] = "Keynote Speakers"
-	data["Links"] = Links
-	data["Content"] = "Key speakers to be determined later."
-	return c.Render("basic", data)
-}
-
-func (a *App) requirementsView(c *fiber.Ctx) error {
-	data := fiber.Map{}
-	data["Title"] = "Requirements"
-	data["Links"] = Links
-	data["Content"] = "Article template will be posted later."
-	return c.Render("basic", data)
-}
-
-func (a *App) generalInfoView(c *fiber.Ctx) error {
-	data := fiber.Map{}
-	data["Links"] = Links
-	return c.Render("general-information", data)
-}
-
-func (a *App) registrationView(c *fiber.Ctx) error {
-	data := fiber.Map{}
-	data["Title"] = "Registration and submission"
-	data["Links"] = Links
-	return c.Render("registration", data)
-}
-
-func (a *App) adminView(c *fiber.Ctx) error {
-	var participants []Participant
-	a.db.Find(&participants)
-	data := fiber.Map{}
-	data["Users"] = participants
-	data["Title"] = "Admin"
-	data["Links"] = Links
-	data["Content"] = "Admin panel"
-	return c.Render("admin", data)
-}
-
 var form = map[string]map[string]string{
 	"tezis": map[string]string{
 		"label": "Upload Abstracts",
@@ -365,17 +301,17 @@ const UploadErrorMessage = "Can't upload file."
 func (a *App) uploadFile(c *fiber.Ctx) error {
 	// t is type of file: article/tezis
 	t := c.Params("type")
-	var emailMessage string
+	a.log.Debug("file type: ", t)
+
+	var emailMessage Message
 	if t != "article" && t != "tezis" {
 		a.log.Info("file type: ", t)
 		return c.Redirect("/404")
 	} else if t == "article" {
-		emailMessage = EmailMailingArticleTemplate
+		emailMessage = AfterArticleUploadEmail
 	} else if t == "tezis" {
-		emailMessage = EmailMailingAbstractsTemplate
+		emailMessage = AfterTezisiUploadEmail
 	}
-
-	a.log.Debug("file type: ", t)
 
 	code := c.Query("code")
 	if code == "" {
@@ -433,7 +369,7 @@ func (a *App) uploadFile(c *fiber.Ctx) error {
 
 	if err = a.sendEmail(
 		To{strings.Join([]string{person.Name, person.Surname}, " "), person.Email},
-		Message{EmailSubjectUploaded, fmt.Sprintf(emailMessage, strings.Join([]string{person.Name, person.Surname}, " "))},
+		Message{emailMessage.Subject, fmt.Sprintf(emailMessage.Text, strings.Join([]string{person.Name, person.Surname}, " "))},
 	); err != nil {
 		a.log.Error(err)
 	}
@@ -441,10 +377,12 @@ func (a *App) uploadFile(c *fiber.Ctx) error {
 	return c.Render("upload", data)
 }
 
-func (a *App) sendMailing(c *fiber.Ctx) error {
+func (a *App) sendNewsletter(c *fiber.Ctx) error {
 	var participants []Participant
 
-	a.db.Find(&participants)
+	if err := a.db.Find(&participants).Error; err != nil {
+		return c.RedirectToRoute("/admin", fiber.Map{"Errors": map[string]string{"sendNewsletter": "Can't get participants"}})
+	}
 
 	fileForm := c.FormValue("file-form")
 
@@ -452,16 +390,16 @@ func (a *App) sendMailing(c *fiber.Ctx) error {
 	flag := false
 
 	for _, participant := range participants {
-		hrefUpload := fmt.Sprintf("http://%s/%s/%s?code=%s", a.config.Domain, "upload", fileForm, participant.Code)
+		hrefUpload := fmt.Sprintf("%s/upload/%s?code=%s", a.config.Domain, fileForm, participant.Code)
 
 		nameSurname := strings.Join([]string{participant.Name, participant.Surname}, " ")
 
-		var template string
+		var emailTemplate Message
 		switch fileForm {
 		case "tezis":
-			template = EmailAbstractsTemplate
+			emailTemplate = StartUploadTezisiEmail
 		case "article":
-			template = EmailArticleTemplate
+			emailTemplate = StartUploadTezisiEmail
 		}
 
 		err := a.sendEmail(
@@ -470,8 +408,8 @@ func (a *App) sendMailing(c *fiber.Ctx) error {
 				participant.Email,
 			},
 			Message{
-				EmailSubjectMailing,
-				fmt.Sprintf(template, nameSurname, hrefUpload),
+				emailTemplate.Subject,
+				fmt.Sprintf(emailTemplate.Text, nameSurname, hrefUpload),
 			},
 		)
 		if err != nil {
@@ -479,9 +417,6 @@ func (a *App) sendMailing(c *fiber.Ctx) error {
 			errorEmails = append(errorEmails, participant.Email)
 			flag = true
 		}
-
-		// time.Sleep(1 * time.Second)
-
 	}
 
 	data := fiber.Map{}
@@ -493,8 +428,6 @@ func (a *App) sendMailing(c *fiber.Ctx) error {
 		data["Success"] = "Message sending completed successfully"
 		data["Ending"] = "Completed"
 	}
-
-	data["Links"] = Links
 
 	return c.Render("admin", data)
 }
@@ -528,8 +461,6 @@ func (a *App) openUpload(c *fiber.Ctx) error {
 	//Upload file
 
 	data := fiber.Map{}
-
-	data["Links"] = Links
 	data["Title"] = "Opened upload"
 
 	messages := make(map[string]string)
@@ -575,7 +506,7 @@ func (a *App) openUpload(c *fiber.Ctx) error {
 
 		if err := a.sendEmail(
 			To{strings.Join([]string{name, surname}, " "), email},
-			Message{EmailSubjectUploaded, fmt.Sprintf(EmailMailingArticleTemplate, strings.Join([]string{name, surname}, " "))},
+			Message{AfterTezisiUploadEmail.Subject, fmt.Sprintf(AfterArticleUploadEmail.Text, strings.Join([]string{name, surname}, " "))},
 		); err != nil {
 			a.log.Error(err)
 		}
@@ -617,20 +548,20 @@ func (a *App) openUploadView(c *fiber.Ctx) error {
 	if monthNeed <= monthNow && dayNeed <= dayNow {
 		//render download
 		data["Title"] = "upload"
-		data["Links"] = Links
+
 		return c.Render("open-upload", data)
 	} else {
 		//render error
 		data["Title"] = "upload"
-		data["Links"] = Links
+
 		return c.Render("closed-upload", data)
 	}
 }
 
-func (a *App) notFoundView(c *fiber.Ctx) error {
-	data := fiber.Map{}
-	data["Title"] = "Page Not Found"
-	data["Links"] = Links
-	data["Content"] = "Page Not Found"
-	return c.Render("basic", data)
-}
+// func (a *App) notFoundView(c *fiber.Ctx) error {
+// 	data := fiber.Map{}
+// 	data["Title"] = "Page Not Found"
+// 	data["Links"] = Links
+// 	data["Content"] = "Page Not Found"
+// 	return c.Render("basic", data)
+// }
