@@ -3,8 +3,6 @@ package main
 import (
 	"io"
 	"os"
-
-	"github.com/google/uuid"
 )
 
 type Disk interface {
@@ -38,8 +36,7 @@ func (d *OsDisk) Save(file io.Reader, fileName string) error {
 	return nil
 }
 
-func (a *App) saveToDisk(file io.Reader, extention string) error {
-	fileName := uuid.New().String()
+func (a *App) saveToDisk(file io.Reader, extention, fileName string) error {
 
 	return a.disk.Save(file, fileName+"."+extention)
 }
