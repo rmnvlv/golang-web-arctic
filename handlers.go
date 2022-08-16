@@ -149,9 +149,10 @@ func (a *App) createExcelFile() (*bytes.Buffer, error) {
 		document.SetCellValue(sheetName, "E"+rowIndex, participan.Position)
 		document.SetCellValue(sheetName, "F"+rowIndex, participan.Phone)
 		document.SetCellValue(sheetName, "G"+rowIndex, participan.Email)
-		document.SetCellValue(sheetName, "H"+rowIndex, participan.PresentationSection)
-		document.SetCellValue(sheetName, "I"+rowIndex, participan.PresentationTitle)
-		document.SetCellValue(sheetName, "J"+rowIndex, participan.Code)
+		document.SetCellValue(sheetName, "H"+rowIndex, participan.PresentationForm)
+		document.SetCellValue(sheetName, "I"+rowIndex, participan.PresentationSection)
+		document.SetCellValue(sheetName, "J"+rowIndex, participan.PresentationTitle)
+		document.SetCellValue(sheetName, "K"+rowIndex, participan.Code)
 	}
 
 	var buf bytes.Buffer
@@ -177,12 +178,15 @@ func (a *App) downloadFiles(c *fiber.Ctx) error {
 	case "participants":
 		file, err = a.createExcelFile()
 		fileName = fmt.Sprintf("AMTC_2022_%s.%s", "Paticipants", "xlsx")
-	case "articles":
+	case "article":
 		file, err = createZipArchive(a.config.DiskPath + "/" + fileType)
 		fileName = fmt.Sprintf("AMTC_2022_%s.%s", "Articles", "zip")
-	case "tezisi":
+	case "tezis":
 		file, err = createZipArchive(a.config.DiskPath + "/" + fileType)
 		fileName = fmt.Sprintf("AMTC_2022_%s.%s", "Tezisi", "zip")
+	case "open-upload":
+		file, err = createZipArchive(a.config.DiskPath + "/" + fileType)
+		fileName = fmt.Sprintf("AMTC_2022_%s.%s", "Open-upload", "zip")
 	// case "all":
 	// 	file, err = createZipArchive(a.config.DiskPath)
 	// 	fileName = fmt.Sprintf("AMTC_2022_%s.%s", "Tesisi+Articles+Participants", "zip")
@@ -357,7 +361,7 @@ func (a *App) uploadFile(c *fiber.Ctx) error {
 
 	fileName := fmt.Sprintf("%s_%s_%s_%s", person.Name, person.Surname, person.Email, t)
 
-	err = a.saveToDisk(content, ext, fileName)
+	err = a.saveToDisk(content, ext, t+"/"+fileName)
 	if err != nil {
 		a.log.Errorf("Can't save file to disk: %v", err)
 
@@ -494,7 +498,7 @@ func (a *App) openUpload(c *fiber.Ctx) error {
 		uniqueId := uuid.New().String()
 		fileName := fmt.Sprintf("%s_%s_%s_%s_%s", name, surname, email, "open-upload", uniqueId)
 
-		err = a.saveToDisk(content, ext, fileName)
+		err = a.saveToDisk(content, ext, "open-upload/"+fileName)
 		if err != nil {
 			a.log.Errorf("Can't save file to disk: %v", err)
 			messages["Error"] = UploadErrorMessage
@@ -553,8 +557,10 @@ func (a *App) openUploadView(c *fiber.Ctx) error {
 	} else {
 		//render error
 		data["Title"] = "upload"
+		data["Closed"] = "Uploading articles for unregistered participants is closed for now, come back later"
+		a.log.Debug("RENDER CLOSED UPLOAD")
 
-		return c.Render("closed-upload", data)
+		return c.Render("open-upload", data)
 	}
 }
 
