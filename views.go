@@ -1,10 +1,14 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 )
+
+//go:embed views
+var ViewsFS embed.FS
 
 func (a *App) mainView(c *fiber.Ctx) error {
 	c.Bind(fiber.Map{
