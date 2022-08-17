@@ -6,7 +6,6 @@ import (
 
 type Participant struct {
 	gorm.Model
-	Id           int    `gorm:"primaryKey"`
 	Code         string `gorm:"primaryKey"`
 	Surname      string
 	Name         string

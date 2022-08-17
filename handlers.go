@@ -89,6 +89,8 @@ func (a *App) registerNewParticipant(c *fiber.Ctx) error {
 	} else {
 		a.db.Create(&participant)
 
+		a.log.Debug(a.db.First(&participant, participant.Code))
+
 		if err := a.sendEmail(
 			To{strings.Join([]string{participant.Name, participant.Surname}, " "), participant.Email},
 			Message{AfterRegistrationEmail.Subject, fmt.Sprintf(AfterRegistrationEmail.Text, a.config.Domain)},
@@ -110,12 +112,13 @@ func (a *App) createExcelFile() (*bytes.Buffer, error) {
 	var participants []Participant
 
 	result := a.db.Find(&participants)
+	a.log.Debug(result)
 	if err := result.Error; err != nil {
 		return &bytes.Buffer{}, err
 	}
 
 	headers := []string{
-		"Id",
+		"Registred at",
 		"Name",
 		"Surname",
 		"Organization",
@@ -142,7 +145,7 @@ func (a *App) createExcelFile() (*bytes.Buffer, error) {
 
 	for i, participan := range participants {
 		rowIndex := strconv.Itoa(i + 2)
-		document.SetCellValue(sheetName, "A"+rowIndex, participan.Id)
+		document.SetCellValue(sheetName, "A"+rowIndex, participan.CreatedAt)
 		document.SetCellValue(sheetName, "B"+rowIndex, participan.Name)
 		document.SetCellValue(sheetName, "C"+rowIndex, participan.Surname)
 		document.SetCellValue(sheetName, "D"+rowIndex, participan.Organization)
