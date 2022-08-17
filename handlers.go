@@ -545,23 +545,13 @@ func (a *App) openUploadView(c *fiber.Ctx) error {
 
 	data := fiber.Map{}
 
-	if monthNeed <= monthNow && dayNeed <= dayNow {
-		//render download
-		data["Title"] = "upload"
+	c.Bind(fiber.Map{
+		"Title": "upload",
+	})
 
+	if monthNeed <= monthNow && dayNeed <= dayNow {
 		return c.Render("open-upload", data)
 	} else {
-		//render error
-		data["Title"] = "upload"
-
 		return c.Render("closed-upload", data)
 	}
 }
-
-// func (a *App) notFoundView(c *fiber.Ctx) error {
-// 	data := fiber.Map{}
-// 	data["Title"] = "Page Not Found"
-// 	data["Links"] = Links
-// 	data["Content"] = "Page Not Found"
-// 	return c.Render("basic", data)
-// }
