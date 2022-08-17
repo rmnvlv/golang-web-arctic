@@ -14,7 +14,17 @@ type OsDisk struct {
 }
 
 func NewOsDisk(path string) (*OsDisk, error) {
-	err := os.MkdirAll(path, 0777)
+	err := os.MkdirAll(path+"/tezis", 0777)
+	if err != nil {
+		return nil, err
+	}
+
+	err = os.MkdirAll(path+"/article", 0777)
+	if err != nil {
+		return nil, err
+	}
+
+	err = os.MkdirAll(path+"/open-upload", 0777)
 	if err != nil {
 		return nil, err
 	}
