@@ -2,15 +2,18 @@ package main
 
 import (
 	"context"
+	"embed"
 	"errors"
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/basicauth"
+	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/template/html"
 	"github.com/joho/godotenv"
@@ -118,15 +121,23 @@ func (a *App) Shutdown(_ context.Context) error {
 	return nil
 }
 
+//go:embed assets/*
+var AssetsFS embed.FS
+
 func (a *App) registerRoutes() {
 	s := a.server
 
-	s.Use(
-		logger.New(),
+	s.Use(logger.New(),
 		// NewLoggerMiddleware(Config{Logger: a.log.Desugar(), Next: nil}),
 	)
+	
+	s.Use("/a", filesystem.New(filesystem.Config{
+		Root:       http.FS(AssetsFS),
+		PathPrefix: "assets",
+		Browse:     true,
+	}))
 
-	s.Static("/a", "./assets")
+	// s.Static("/a", "./assets")
 
 	s.Use(func(c *fiber.Ctx) error {
 		c.Bind(fiber.Map{
