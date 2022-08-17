@@ -1,2 +1,2 @@
 build:
-	go build -o ./bin/amtc .
+	GOOS=linux GOARCH=amd64 go build -o ./bin/amtc .
