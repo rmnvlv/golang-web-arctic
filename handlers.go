@@ -22,7 +22,7 @@ import (
 
 const (
 	ErrorMessage   = "Some form fields are entered incorrectly. Change them and try again."
-	SuccessMessage = "Seccessfully registred for AMTC 2022!"
+	SuccessMessage = "Seccessfully registered for AMTC 2022!"
 )
 
 func (a *App) registerNewParticipant(c *fiber.Ctx) error {
@@ -37,6 +37,8 @@ func (a *App) registerNewParticipant(c *fiber.Ctx) error {
 		PresentationSection: c.FormValue("presentation-section"),
 		PresentationTitle:   c.FormValue("presentation-title"),
 	}
+
+	participant.CreatedAt = time.Now().Format("01-02-2002")
 
 	formErrors := make(map[string]string)
 

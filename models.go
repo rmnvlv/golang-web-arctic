@@ -1,11 +1,7 @@
 package main
 
-import (
-	"gorm.io/gorm"
-)
-
 type Participant struct {
-	gorm.Model
+	CreatedAt    string
 	Code         string `gorm:"primaryKey"`
 	Surname      string
 	Name         string
