@@ -18,6 +18,7 @@ require (
 
 require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
+	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/hbollon/go-edlib v1.6.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
@@ -37,5 +38,6 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/yaml.v3 v3.0.0 // indirect
+	gorm.io/driver/mysql v1.3.6 // indirect
 	h12.io/socks v1.0.3 // indirect
 )

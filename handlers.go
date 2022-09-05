@@ -563,6 +563,6 @@ func (a *App) openUploadView(c *fiber.Ctx) error {
 		data["Closed"] = "Uploading articles for unregistered participants is closed for now, come back later"
 		a.log.Debug("RENDER CLOSED UPLOAD")
 
-		return c.Render("closed-upload", data)
+		return c.Render("open-upload", data)
 	}
 }

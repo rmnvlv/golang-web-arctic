@@ -19,7 +19,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 	"gopkg.in/gomail.v2"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
@@ -39,8 +39,8 @@ type App struct {
 }
 
 func (a *App) Init(config *Config, log *Logger) error {
-	// db, err := gorm.Open(mysql.Open(config.DatabaseURL), &gorm.Config{})
-	db, err := gorm.Open(sqlite.Open(config.DatabaseURL), &gorm.Config{})
+	db, err := gorm.Open(mysql.Open(config.DatabaseURL), &gorm.Config{})
+	//db, err := gorm.Open(sqlite.Open(config.DatabaseURL), &gorm.Config{})
 	if err != nil {
 		return fmt.Errorf("can't open database: %w", err)
 	}
@@ -127,10 +127,8 @@ var AssetsFS embed.FS
 func (a *App) registerRoutes() {
 	s := a.server
 
-	s.Use(logger.New(),
-		// NewLoggerMiddleware(Config{Logger: a.log.Desugar(), Next: nil}),
-	)
-	
+	s.Use(logger.New()) // NewLoggerMiddleware(Config{Logger: a.log.Desugar(), Next: nil}),
+
 	s.Use("/a", filesystem.New(filesystem.Config{
 		Root:       http.FS(AssetsFS),
 		PathPrefix: "assets",
