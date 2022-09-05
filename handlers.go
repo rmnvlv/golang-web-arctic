@@ -91,7 +91,7 @@ func (a *App) registerNewParticipant(c *fiber.Ctx) error {
 	} else {
 		a.db.Create(&participant)
 
-		a.log.Debug(a.db.First(&participant, participant.Token))
+		//a.log.Debug(a.db.First(&participant, participant.Token))
 
 		if err := a.sendEmail(
 			To{strings.Join([]string{participant.Name, participant.Surname}, " "), participant.Email},
@@ -289,9 +289,9 @@ func (a *App) uploadView(c *fiber.Ctx) error {
 
 	a.log.Debug("User id", id)
 
-	var person Participant
+	var participant Participant
 	//result := a.db.First(&person, "token = ?", id)
-	result := a.db.Where("token = ?", id).First(&person)
+	result := a.db.Where("token = ?", id).First(&participant)
 	if result.Error != nil {
 		a.log.Error(result.Error)
 		return c.Redirect("/404")
@@ -299,9 +299,9 @@ func (a *App) uploadView(c *fiber.Ctx) error {
 
 	data := fiber.Map{}
 	data["Title"] = "Upload"
-	data["User"] = person
+	data["User"] = participant
 	data["Form"] = form[t]
-	data["Path"] = t + "?code=" + person.Token
+	data["Path"] = t + "?code=" + participant.Token
 
 	return c.Render("upload", data)
 }
@@ -331,9 +331,9 @@ func (a *App) uploadFile(c *fiber.Ctx) error {
 
 	a.log.Debug("User id: ", token)
 
-	var person Participant
+	var participant Participant
 	//result := a.db.First(&person, "token = ?", token)
-	result := a.db.Where("token = ?", token).First(&person)
+	result := a.db.Where("token = ?", token).First(&participant)
 	if result.Error != nil {
 		a.log.Error(result.Error)
 		return c.Redirect("/404")
@@ -342,8 +342,8 @@ func (a *App) uploadFile(c *fiber.Ctx) error {
 	data := fiber.Map{}
 	data["Title"] = "Upload"
 	data["Form"] = form[t]
-	data["User"] = person
-	data["Path"] = t + "?code=" + person.Token
+	data["User"] = participant
+	data["Path"] = t + "?code=" + participant.Token
 
 	file, err := c.FormFile(t)
 	if err != nil {
@@ -366,7 +366,7 @@ func (a *App) uploadFile(c *fiber.Ctx) error {
 
 	defer content.Close()
 
-	fileName := fmt.Sprintf("%s_%s_%s_%s", person.Name, person.Surname, person.Email, t)
+	fileName := fmt.Sprintf("%s_%s_%s_%s", participant.Name, participant.Surname, participant.Email, t)
 
 	err = a.saveToDisk(content, ext, t+"/"+fileName)
 	if err != nil {
@@ -379,8 +379,8 @@ func (a *App) uploadFile(c *fiber.Ctx) error {
 	data["Success"] = "File successfully uploaded"
 
 	if err = a.sendEmail(
-		To{strings.Join([]string{person.Name, person.Surname}, " "), person.Email},
-		Message{emailMessage.Subject, fmt.Sprintf(emailMessage.Text, strings.Join([]string{person.Name, person.Surname}, " "))},
+		To{strings.Join([]string{participant.Name, participant.Surname}, " "), participant.Email},
+		Message{emailMessage.Subject, fmt.Sprintf(emailMessage.Text, strings.Join([]string{participant.Name, participant.Surname}, " "))},
 	); err != nil {
 		a.log.Error(err)
 	}
