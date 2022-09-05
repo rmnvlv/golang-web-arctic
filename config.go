@@ -78,6 +78,11 @@ func (c *Config) LoadEnv() error {
 		}
 	}
 
+	c.Domain, ok = os.LookupEnv("DOMAIN")
+	if !ok {
+		return fmt.Errorf("DOMAIN not set")
+	}
+
 	if c.DiskPath == "" {
 		c.DiskPath, ok = os.LookupEnv("DISK_PATH")
 		if !ok {

@@ -420,7 +420,7 @@ func (a *App) sendNewsletter(c *fiber.Ctx) error {
 			},
 			Message{
 				emailTemplate.Subject,
-				fmt.Sprintf(emailTemplate.Text, nameSurname, hrefUpload),
+				fmt.Sprintf(emailTemplate.Text, nameSurname, a.config.Domain, hrefUpload),
 			},
 		)
 		if err != nil {

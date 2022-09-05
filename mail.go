@@ -26,8 +26,8 @@ var StartUploadTezisiEmail = Message{
 		<body>
 			<p><strong>Dear %s,</strong></p>
 			<p>You received this email because you are registered for the International Conference «Arctic: Marine Transportation Challenges – 2022», which will take place on November 24-25, 2022.</p>
-			<p>Acceptance of abstracts is open. The abstracts template is available on the website <a href="%s/programme-overview">page</a></p>
-			<p>Abstract upload form at the <a href="%s"> link</a>.</p>
+			<p>Acceptance of abstracts is open. The abstracts template is available on the website <a href="%s/programme-overview">page</a>.</p>
+			<p>Abstract upload form at the <a href="%s">link</a>.</p>
 			<p>If you have any questions, please contact by <a href="mailto:amtc@gumrf.ru">amtc@gumrf.ru</a>.</p>
 			<p>Best Regards,<br>Organizing committee AMTC-2022</p>
 		</body>
@@ -40,7 +40,7 @@ var StartUploadArticlesEmail = Message{
 		<body>
 			<p><strong>Dear %s,</strong></p>
 			<p>You received this email because you are registered for the International Conference «Arctic: Marine Transportation Challenges – 2022», which will take place on November 24-25, 2022.</p>
-			<p>Acceptance of full paper is open. The full paper template is available on the website page.</p>
+			<p>Acceptance of full paper is open. The full paper template is available on the website <a href="%s/programme-overview">page</a>.</p>
 			<p>The form for adding full paper is available at the <a href="%s">link</a>.</p>
 			<p>If you have any questions, please contact by <a href="mailto:amtc@gumrf.ru">amtc@gumrf.ru</a>.</p>
 			<p>Best Regards,<br>Organizing committee AMTC-2022</p>
