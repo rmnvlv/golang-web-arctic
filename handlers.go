@@ -83,7 +83,7 @@ func (a *App) registerNewParticipant(c *fiber.Ctx) error {
 	data := fiber.Map{}
 	messages := make(map[string]string)
 
-	participant.Code = uuid.New().String()
+	participant.CodeUUID = uuid.New().String()
 
 	if len(formErrors) > 0 {
 		messages["Error"] = ErrorMessage
@@ -91,7 +91,7 @@ func (a *App) registerNewParticipant(c *fiber.Ctx) error {
 	} else {
 		a.db.Create(&participant)
 
-		a.log.Debug(a.db.First(&participant, participant.Code))
+		a.log.Debug(a.db.First(&participant, participant.CodeUUID))
 
 		if err := a.sendEmail(
 			To{strings.Join([]string{participant.Name, participant.Surname}, " "), participant.Email},
@@ -157,7 +157,7 @@ func (a *App) createExcelFile() (*bytes.Buffer, error) {
 		document.SetCellValue(sheetName, "H"+rowIndex, participan.PresentationForm)
 		document.SetCellValue(sheetName, "I"+rowIndex, participan.PresentationSection)
 		document.SetCellValue(sheetName, "J"+rowIndex, participan.PresentationTitle)
-		document.SetCellValue(sheetName, "K"+rowIndex, participan.Code)
+		document.SetCellValue(sheetName, "K"+rowIndex, participan.CodeUUID)
 	}
 
 	var buf bytes.Buffer
@@ -300,7 +300,7 @@ func (a *App) uploadView(c *fiber.Ctx) error {
 	data["Title"] = "Upload"
 	data["User"] = person
 	data["Form"] = form[t]
-	data["Path"] = t + "?code=" + person.Code
+	data["Path"] = t + "?code=" + person.CodeUUID
 
 	return c.Render("upload", data)
 }
@@ -341,7 +341,7 @@ func (a *App) uploadFile(c *fiber.Ctx) error {
 	data["Title"] = "Upload"
 	data["Form"] = form[t]
 	data["User"] = person
-	data["Path"] = t + "?code=" + person.Code
+	data["Path"] = t + "?code=" + person.CodeUUID
 
 	file, err := c.FormFile(t)
 	if err != nil {
@@ -399,7 +399,7 @@ func (a *App) sendNewsletter(c *fiber.Ctx) error {
 	flag := false
 
 	for _, participant := range participants {
-		hrefUpload := fmt.Sprintf("%s/upload/%s?code=%s", a.config.Domain, fileForm, participant.Code)
+		hrefUpload := fmt.Sprintf("%s/upload/%s?code=%s", a.config.Domain, fileForm, participant.CodeUUID)
 
 		nameSurname := strings.Join([]string{participant.Name, participant.Surname}, " ")
 
