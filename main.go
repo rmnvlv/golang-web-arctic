@@ -51,11 +51,11 @@ func (a *App) Init(config *Config, log *Logger) error {
 	}
 	log.Info("Migrations applied")
 
-	m, err := gomail.NewDialer(config.SMTP.Host, config.SMTP.Port, config.SMTP.User, config.SMTP.Password).Dial()
-	if err != nil {
-		return fmt.Errorf("can't authenticate to an SMTP server: %w", err)
-	}
-	log.Infof("Authenticated to SMTP server: %s:%d", config.SMTP.Host, config.SMTP.Port)
+	// m, err := gomail.NewDialer(config.SMTP.Host, config.SMTP.Port, config.SMTP.User, config.SMTP.Password).Dial()
+	// if err != nil {
+	// 	return fmt.Errorf("can't authenticate to an SMTP server: %w", err)
+	// }
+	// log.Infof("Authenticated to SMTP server: %s:%d", config.SMTP.Host, config.SMTP.Port)
 
 	disk, err := NewOsDisk(config.DiskPath)
 	if err != nil {
@@ -70,7 +70,7 @@ func (a *App) Init(config *Config, log *Logger) error {
 
 	a.server = server
 	a.db = db
-	a.mailer = m
+	//a.mailer = m
 	a.log = log
 	a.disk = disk
 	a.config = config

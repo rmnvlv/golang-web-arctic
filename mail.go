@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"gopkg.in/gomail.v2"
 )
 
@@ -80,11 +82,18 @@ type Message struct {
 }
 
 func (a *App) sendEmail(to To, message Message) error {
+	m, err := gomail.NewDialer(a.config.SMTP.Host, a.config.SMTP.Port, a.config.SMTP.User, a.config.SMTP.Password).Dial()
+	if err != nil {
+		return fmt.Errorf("can't authenticate to an SMTP server: %w", err)
+	}
+
+	a.log.Infof("Authenticated to SMTP server: %s:%d", a.config.SMTP.Host, a.config.SMTP.Port)
+
 	email := gomail.NewMessage(gomail.SetCharset("UTF-8"), gomail.SetEncoding(gomail.Base64))
 	email.SetAddressHeader("From", a.config.SMTP.User, "AMTC 2022 Organizers")
 	email.SetAddressHeader("To", to.Email, to.Name)
 	email.SetHeader("Subject", message.Subject)
 	email.SetBody("text/html", message.Text)
 
-	return a.mailer.Send(a.config.SMTP.User, []string{to.Email}, email)
+	return m.Send(a.config.SMTP.User, []string{to.Email}, email)
 }
