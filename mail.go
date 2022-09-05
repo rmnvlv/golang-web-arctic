@@ -86,6 +86,7 @@ func (a *App) sendEmail(to To, message Message) error {
 	if err != nil {
 		return fmt.Errorf("can't authenticate to an SMTP server: %w", err)
 	}
+	defer m.Close()
 
 	a.log.Infof("Authenticated to SMTP server: %s:%d", a.config.SMTP.Host, a.config.SMTP.Port)
 
