@@ -331,7 +331,7 @@ func (a *App) uploadFile(c *fiber.Ctx) error {
 	a.log.Debug("User id: ", code)
 
 	var person Participant
-	result := a.db.First(&person, "code = ?", code)
+	result := a.db.First(&person, "code_uuid = ?", code)
 	if result.Error != nil {
 		a.log.Error(result.Error)
 		return c.Redirect("/404")
