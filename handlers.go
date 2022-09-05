@@ -83,7 +83,7 @@ func (a *App) registerNewParticipant(c *fiber.Ctx) error {
 	data := fiber.Map{}
 	messages := make(map[string]string)
 
-	participant.CodeUUID = uuid.New().String()
+	participant.Token = uuid.New().String()
 
 	if len(formErrors) > 0 {
 		messages["Error"] = ErrorMessage
@@ -91,7 +91,7 @@ func (a *App) registerNewParticipant(c *fiber.Ctx) error {
 	} else {
 		a.db.Create(&participant)
 
-		a.log.Debug(a.db.First(&participant, participant.CodeUUID))
+		a.log.Debug(a.db.First(&participant, participant.Token))
 
 		if err := a.sendEmail(
 			To{strings.Join([]string{participant.Name, participant.Surname}, " "), participant.Email},
@@ -157,7 +157,7 @@ func (a *App) createExcelFile() (*bytes.Buffer, error) {
 		document.SetCellValue(sheetName, "H"+rowIndex, participan.PresentationForm)
 		document.SetCellValue(sheetName, "I"+rowIndex, participan.PresentationSection)
 		document.SetCellValue(sheetName, "J"+rowIndex, participan.PresentationTitle)
-		document.SetCellValue(sheetName, "K"+rowIndex, participan.CodeUUID)
+		document.SetCellValue(sheetName, "K"+rowIndex, participan.Token)
 	}
 
 	var buf bytes.Buffer
@@ -290,7 +290,8 @@ func (a *App) uploadView(c *fiber.Ctx) error {
 	a.log.Debug("User id", id)
 
 	var person Participant
-	result := a.db.First(&person, "code = ?", id)
+	//result := a.db.First(&person, "token = ?", id)
+	result := a.db.Where("token = ?", id).First(&person)
 	if result.Error != nil {
 		a.log.Error(result.Error)
 		return c.Redirect("/404")
@@ -300,7 +301,7 @@ func (a *App) uploadView(c *fiber.Ctx) error {
 	data["Title"] = "Upload"
 	data["User"] = person
 	data["Form"] = form[t]
-	data["Path"] = t + "?code=" + person.CodeUUID
+	data["Path"] = t + "?code=" + person.Token
 
 	return c.Render("upload", data)
 }
@@ -322,16 +323,17 @@ func (a *App) uploadFile(c *fiber.Ctx) error {
 		emailMessage = AfterTezisiUploadEmail
 	}
 
-	code := c.Query("code")
-	if code == "" {
+	token := c.Query("code")
+	if token == "" {
 		a.log.Info("User code is empty")
 		return c.Redirect("/404")
 	}
 
-	a.log.Debug("User id: ", code)
+	a.log.Debug("User id: ", token)
 
 	var person Participant
-	result := a.db.First(&person, "code_uuid = ?", code)
+	//result := a.db.First(&person, "token = ?", token)
+	result := a.db.Where("token = ?", token).First(&person)
 	if result.Error != nil {
 		a.log.Error(result.Error)
 		return c.Redirect("/404")
@@ -341,7 +343,7 @@ func (a *App) uploadFile(c *fiber.Ctx) error {
 	data["Title"] = "Upload"
 	data["Form"] = form[t]
 	data["User"] = person
-	data["Path"] = t + "?code=" + person.CodeUUID
+	data["Path"] = t + "?code=" + person.Token
 
 	file, err := c.FormFile(t)
 	if err != nil {
@@ -399,7 +401,7 @@ func (a *App) sendNewsletter(c *fiber.Ctx) error {
 	flag := false
 
 	for _, participant := range participants {
-		hrefUpload := fmt.Sprintf("%s/upload/%s?code=%s", a.config.Domain, fileForm, participant.CodeUUID)
+		hrefUpload := fmt.Sprintf("%s/upload/%s?code=%s", a.config.Domain, fileForm, participant.Token)
 
 		nameSurname := strings.Join([]string{participant.Name, participant.Surname}, " ")
 

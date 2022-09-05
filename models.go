@@ -2,7 +2,7 @@ package main
 
 type Participant struct {
 	CreatedAt    string
-	CodeUUID     string `gorm:"primaryKey"`
+	Token        string `gorm:"primaryKey"`
 	Surname      string
 	Name         string
 	Organization string
@@ -17,7 +17,4 @@ type Participant struct {
 	PresentationSection string
 
 	PresentationTitle string
-
-	Article string
-	Tizis   string
 }
