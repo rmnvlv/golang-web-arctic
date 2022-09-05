@@ -52,7 +52,7 @@ var AfterTezisiUploadEmail = Message{
 	Text: `
 		<html>
 		<body>
-			<p><strong>Abstracts uploaded successfully.</strong></p>
+			<p><strong>Dear %s, abstracts uploaded successfully.</strong></p>
 			<p>The International Conference «Arctic: Marine Transportation Challenges – 2022» will be held on November 24-25, 2022</p>
 			<p>If you have any questions, please contact by <a href="mailto:amtc@gumrf.ru">amtc@gumrf.ru</a>.</p>
 		</body>
@@ -63,7 +63,7 @@ var AfterArticleUploadEmail = Message{
 	Text: `
 		<html>
 		<body>
-			<p><strong>Full paper uploaded successfully.</strong></p>
+			<p><strong>Dear %s, full paper uploaded successfully.</strong></p>
 			<p> We will contact you if there are questions about the results of the review. </p>
 			<p>Please clarify by amtc@gumrf.ru whether an oral presentation is planned or only publication. In the case of an oral presentation, whether it will be a face-to-face or online participation.</p>
 			<p>If you have any questions, please contact by <a href="mailto:amtc@gumrf.ru">amtc@gumrf.ru</a>.</p>
