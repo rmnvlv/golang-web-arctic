@@ -366,7 +366,7 @@ func (a *App) uploadFile(c *fiber.Ctx) error {
 
 	defer content.Close()
 
-	fileName := fmt.Sprintf("%s_%s_%s_%s", participant.Name, participant.Surname, participant.Email, t)
+	fileName := fmt.Sprintf("%s_%s_%s_%s_%s", participant.Name, participant.Surname, participant.Email, t, time.Now().Format("01-02-2002"))
 
 	err = a.saveToDisk(content, ext, t+"/"+fileName)
 	if err != nil {
