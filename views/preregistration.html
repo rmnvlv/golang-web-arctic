@@ -1,0 +1,69 @@
+<div class="px-4 mx-auto max-w-screen-xl">
+    <div class="mt-10 sm:mt-0 mx-auto">
+        <div class="md:grid md:grid-cols-2 md:gap-6">
+            <div class="mt-5 md:mt-0 md:col-span-2 lg:pt-8">
+
+                <form action="/verifyemail" method="POST">
+                    <div class="shadow overflow-hidden sm:rounded-md">
+                        <a>
+                            <div class="col-span-6 sm:col-span-4">
+                                <label for="email" class="block text-sm font-medium">
+                                    E-mail<span class="text-red-700"> *enter your email and press the button</span>
+                                </label>
+                                <input 
+                                    type="text"
+                                    name="email"
+                                    id="email"
+                                    value="{{.Values.Email}}"
+                                    required
+                                    class="mt-1 focus:ring-sky-500 focus:border-sky-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                
+                            </div>
+                            {{if .Message}}
+                            <div class="mt-4 p-4 mb-4 text-sm text-red-700 bg-red-300 rounded-lg border border-red-700">
+                                <!-- <span class="font-medium">Oops!</span> -->
+                                {{.Message}}
+                            </div>
+                            {{end}}
+                        <button type="submit"
+                            class="text-white bg-sky-700 hover:bg-sky-800 focus:ring-4 focus:ring-sky-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-sky-600 dark:hover:bg-sky-700 focus:outline-none dark:focus:ring-sky-800">
+                            Get email code
+                        </button>
+                        </a>
+                    </div>
+                </form>
+
+                <form action="/gotoregistration" method="POST">
+                    <div class="shadow overflow-hidden sm:rounded-md">
+                        <a>
+                                <div class="col-span-6 sm:col-span-4">
+                                    <label for="email" class="block text-sm font-medium">
+                                        Past E-mail code here<span class="text-red-700"> *</span>
+                                    </label>
+                                    <input 
+                                        type="text"
+                                        name="code"
+                                        id="code"
+                                        value="{{.Values.Code}}"
+                                        required
+                                        class="mt-1 focus:ring-sky-500 focus:border-sky-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                    {{if .Message}}
+                                    <div class="mt-4 p-4 mb-4 text-sm text-red-700 bg-red-300 rounded-lg border border-red-700">
+                                        <!-- <span class="font-medium">Oops!</span> -->
+                                        {{.Message}}
+                                    </div>
+                                    {{end}}
+                                </div>
+                            <button type="submit"
+                                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">
+                                Verify email
+                            </button>
+                        
+                    </div>
+                </a>
+                </form>
+                
+            </div>
+        </div>
+    </div>
+    </div>

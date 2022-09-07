@@ -23,6 +23,7 @@ import (
 const (
 	ErrorMessage   = "Some form fields are entered incorrectly. Change them and try again."
 	SuccessMessage = "Seccessfully registered for AMTC 2022!"
+	EmailCode      = "asdaASDd213010230KDKSAd9o2kaodoawd--awd-awod309sfkkawsldLS"
 )
 
 func (a *App) registerNewParticipant(c *fiber.Ctx) error {
@@ -108,6 +109,40 @@ func (a *App) registerNewParticipant(c *fiber.Ctx) error {
 	data["Message"] = messages
 
 	return c.Render("registration", data)
+}
+
+func (a *App) verifyEmail(c *fiber.Ctx) error {
+
+	email := c.FormValue("email")
+
+	data := fiber.Map{}
+
+	err := a.sendEmail(
+		To{email, email},
+		Message{VerifyEmailMessage.Subject, fmt.Sprintf(VerifyEmailMessage.Text, EmailCode)},
+	)
+	if err != nil {
+		a.log.Errorf("Can't send email to %s: %w", email, err.Error())
+	} else {
+		data["Message"] = "Chek your email for code!"
+	}
+
+	data["Title"] = "Verify email"
+	return c.Render("preregistration", data)
+}
+
+func (a *App) goToRegistration(c *fiber.Ctx) error {
+	code := c.FormValue("code")
+	data := fiber.Map{}
+
+	if code == EmailCode {
+		data["Title"] = "Registration and submission"
+		return c.Render("registration", data)
+	} else {
+		data["Title"] = "Verify email"
+		data["Message"] = "Code incorrect!"
+		return c.Render("preregistration", data)
+	}
 }
 
 func (a *App) createExcelFile() (*bytes.Buffer, error) {

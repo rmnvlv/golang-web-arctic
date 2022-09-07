@@ -67,6 +67,14 @@ func (a *App) adminView(c *fiber.Ctx) error {
 	return c.Render("admin", fiber.Map{})
 }
 
+func (a *App) preRegistration(c *fiber.Ctx) error {
+	c.Bind(fiber.Map{
+		"Title": "Verify email",
+	})
+
+	return c.Render("preregistration", fiber.Map{})
+}
+
 func (a *App) notFoundView(c *fiber.Ctx) error {
 	c.Bind(fiber.Map{
 		"Title":   "Page Not Found",

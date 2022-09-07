@@ -70,6 +70,17 @@ var AfterArticleUploadEmail = Message{
 		</body>
 		</html>`,
 }
+var VerifyEmailMessage = Message{
+	Subject: "AMTC 2022 Verify email",
+	Text: `
+		<html>
+		<body>
+			<p><strong>Dear participan, please verify your email by this code.</strong></p>
+			<p> Code: %s </p>
+			<p>If you have any questions, please contact by <a href="mailto:amtc@gumrf.ru">amtc@gumrf.ru</a>.</p>
+		</body>
+		</html>`,
+}
 
 type To struct {
 	Name  string

@@ -19,7 +19,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 	"gopkg.in/gomail.v2"
-	"gorm.io/driver/mysql"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -39,8 +39,8 @@ type App struct {
 }
 
 func (a *App) Init(config *Config, log *Logger) error {
-	db, err := gorm.Open(mysql.Open(config.DatabaseURL), &gorm.Config{})
-	//db, err := gorm.Open(sqlite.Open(config.DatabaseURL), &gorm.Config{})
+	//db, err := gorm.Open(mysql.Open(config.DatabaseURL), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(config.DatabaseURL), &gorm.Config{})
 	if err != nil {
 		return fmt.Errorf("can't open database: %w", err)
 	}
@@ -149,7 +149,10 @@ func (a *App) registerRoutes() {
 	s.Get("/keynote-speakers", a.keynoteSpeakersView)
 	s.Get("/requirements", a.requirementsView)
 	s.Get("/general-information", a.generalInfoView)
-	s.Get("/registration-and-submission", a.registrationView)
+	s.Get("/pre-registration", a.preRegistration)
+	s.Post("/verifyemail", a.verifyEmail)
+	s.Post("/gotoregistration", a.goToRegistration)
+	s.Get("/registration-and-submission", a.verifyEmail)
 	s.Post("/registration-and-submission", a.registerNewParticipant)
 	s.Get("/upload/:type", a.uploadView)
 	s.Post("/upload/:type", a.uploadFile)
