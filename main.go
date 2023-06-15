@@ -10,16 +10,19 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/basicauth"
+	"github.com/gofiber/fiber/v2/middleware/csrf"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/utils"
 	"github.com/gofiber/template/html"
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 	"gopkg.in/gomail.v2"
-	"gorm.io/driver/mysql"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -39,8 +42,8 @@ type App struct {
 }
 
 func (a *App) Init(config *Config, log *Logger) error {
-	db, err := gorm.Open(mysql.Open(config.DatabaseURL), &gorm.Config{})
-	//db, err := gorm.Open(sqlite.Open(config.DatabaseURL), &gorm.Config{})
+	//db, err := gorm.Open(mysql.Open(config.DatabaseURL), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 	if err != nil {
 		return fmt.Errorf("can't open database: %w", err)
 	}
@@ -64,8 +67,9 @@ func (a *App) Init(config *Config, log *Logger) error {
 	log.Infof("Disk initialized at: %s", disk.Path)
 
 	server := fiber.New(fiber.Config{
-		Views:       html.New("./views", ".html"),
-		ViewsLayout: "main",
+		Views:        html.New("./views", ".html"),
+		ViewsLayout:  "main",
+		ServerHeader: "Content-Security-Policy",
 	})
 
 	a.server = server
@@ -137,12 +141,26 @@ func (a *App) registerRoutes() {
 
 	// s.Static("/a", "./assets")
 
-	s.Use(func(c *fiber.Ctx) error {
-		c.Bind(fiber.Map{
-			"Links": links([]string{"Programme Overview", "Keynote Speakers", "Registration and submission", "Requirements", "General information", "Open upload"}),
-		})
-		return c.Next()
-	})
+	s.Use(
+		func(c *fiber.Ctx) error {
+			c.Bind(fiber.Map{
+				"Links": links([]string{"Programme Overview", "Keynote Speakers", "Registration and submission", "Requirements", "General information", "Open upload"}),
+			})
+			c.Set("X-Content-Type-Options", "nosniff")
+			c.Set("Content-Security-Policy", "default-src 'self' /a/css/tailwind.css /a/css/app.css; frame-ancestors 'self'")
+			c.Set("Strict-Transport-Security", "max-age=86400")
+			c.Set("X-XSS-Protection", "1; mode=block")
+			return c.Next()
+		},
+		csrf.New(csrf.Config{
+			KeyLookup:      "header:X-Csrf-Token",
+			CookieName:     "csrf",
+			CookieSameSite: "Lax",
+			Expiration:     1 * time.Hour,
+			KeyGenerator:   utils.UUID,
+			CookieHTTPOnly: true,
+		}),
+	)
 
 	s.Get("/", a.mainView)
 	s.Get("/programme-overview", a.programOverviewView)
@@ -186,11 +204,11 @@ func main() {
 		Use: "serve",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			if err := logger.Init(); err != nil {
-				return err
+				return fmt.Errorf("error in serve init app: %w", err)
 			}
 
 			if err := config.LoadEnv(); err != nil {
-				return err
+				return fmt.Errorf("error in load env serve: %w", err)
 			}
 
 			fmt.Println(config)

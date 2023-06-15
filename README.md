@@ -34,6 +34,8 @@ DISK_PATH=".disk"
 go run . serve --http="127.0.0.1:8080" --db-url="test.db" --disk-path=".disk"
 ```
 
+C:\Users\romar\Рабочий стол\CODES\Web-Arctic
+
 Когда меняются стили, tailwind должен знать об этом. 
 Для этого нужно, чтобы tailwind следил за всеми изменения в html/css/js файлах и генерировал обновленный css файл.
 ```shell
